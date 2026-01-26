@@ -472,6 +472,44 @@ export default {
       }
     },
 
+    async selectSystemHost() {
+      try {
+        // 获取系统host路径和内容
+        this.systemHostPath = await GetSystemHostPath()
+        this.systemHostContent = await GetSystemHostsContent()
+        
+        // 设置选中系统host
+        this.selectedGroup = {
+          id: 'system-host',
+          name: 'System Host File',
+          description: this.systemHostPath,
+          content: this.systemHostContent,
+          enabled: false,
+          isRemote: false,
+          createdAt: null,
+          updatedAt: null
+        }
+        
+        // 清除编辑状态
+        this.editingGroup = {}
+        this.isDirty = false
+      } catch (error) {
+        this.showMessage(`Failed to load system host file: ${error}`, 'error')
+      }
+    },
+
+    async refreshSystemHost() {
+      try {
+        this.systemHostContent = await GetSystemHostsContent()
+        if (this.selectedGroup && this.selectedGroup.id === 'system-host') {
+          this.selectedGroup.content = this.systemHostContent
+        }
+        this.showMessage('System host file refreshed', 'info')
+      } catch (error) {
+        this.showMessage(`Failed to refresh system host file: ${error}`, 'error')
+      }
+    },
+
     showMessage(text, type) {
       this.message = text
       this.messageType = type

@@ -1,0 +1,58 @@
+# Build artifacts
+*.exe
+*.dll
+*.so
+*.dylib
+*.out
+ghost
+ghost.exe
+
+# Wails build artifacts
+build/bin/
+frontend/dist/
+
+# Dependencies
+vendor/
+node_modules/
+
+# Logs
+*.log
+logs/
+tmp/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Go
+*.test
+*.prof
+go.exe
+coverage.out
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Icon?
+*.tmp
+
+# Linux
+*~
+
+# Configuration (if there are sample configs)
+*.config.bak
+
+# macOS
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Local config
+config.local
+*.local

@@ -1,0 +1,99 @@
+package main
+
+import (
+	"context"
+	"fmt"
+
+	"ghost/application"
+	"ghost/models"
+)
+
+// App struct
+type App struct {
+	ctx     context.Context
+	hostApp *application.HostApp
+}
+
+// NewApp creates a new App application struct
+func NewApp() *App {
+	hostApp, err := application.NewHostApp()
+	if err != nil {
+		fmt.Printf("Failed to initialize host app: %v\n", err)
+		return nil
+	}
+
+	return &App{
+		hostApp: hostApp,
+	}
+}
+
+// startup is called when the app starts. The context is saved
+// so we can call the runtime methods
+func (a *App) startup(ctx context.Context) {
+	a.ctx = ctx
+}
+
+// GetHostGroups 获取所有Host分组
+func (a *App) GetHostGroups() ([]models.HostGroup, error) {
+	return a.hostApp.GetHostGroups()
+}
+
+// AddHostGroup 添加新的Host分组
+func (a *App) AddHostGroup(group models.HostGroup) error {
+	return a.hostApp.AddHostGroup(group)
+}
+
+// UpdateHostGroup 更新Host分组
+func (a *App) UpdateHostGroup(group models.HostGroup) error {
+	return a.hostApp.UpdateHostGroup(group)
+}
+
+// DeleteHostGroup 删除Host分组
+func (a *App) DeleteHostGroup(id string) error {
+	return a.hostApp.DeleteHostGroup(id)
+}
+
+// ToggleHostGroup 启用或禁用Host分组
+func (a *App) ToggleHostGroup(id string, enabled bool) error {
+	return a.hostApp.ToggleHostGroup(id, enabled)
+}
+
+// ApplyHosts 应用所有启用的Host分组到系统
+func (a *App) ApplyHosts() error {
+	return a.hostApp.ApplyHosts()
+}
+
+// GetSystemHostPath 获取系统hosts文件路径
+func (a *App) GetSystemHostPath() string {
+	return a.hostApp.GetSystemHostPath()
+}
+
+// GetSystemHostsContent 获取系统hosts文件内容
+func (a *App) GetSystemHostsContent() (string, error) {
+	return a.hostApp.GetSystemHostsContent()
+}
+
+// RefreshRemoteGroups 刷新所有远程Host组
+func (a *App) RefreshRemoteGroups() error {
+	return a.hostApp.RefreshRemoteGroups()
+}
+
+// GetConfig 获取应用程序配置
+func (a *App) GetConfig() (*models.AppConfig, error) {
+	return a.hostApp.GetConfig()
+}
+
+// UpdateConfig 更新应用程序配置
+func (a *App) UpdateConfig(config models.AppConfig) error {
+	return a.hostApp.UpdateConfig(&config)
+}
+
+// GetHostGroup 获取指定ID的Host分组
+func (a *App) GetHostGroup(id string) (*models.HostGroup, error) {
+	return a.hostApp.GetHostGroup(id)
+}
+
+// Greet returns a greeting for the given name
+func (a *App) Greet(name string) string {
+	return fmt.Sprintf("Hello %s, It's show time!", name)
+}

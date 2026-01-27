@@ -103,46 +103,53 @@
           </div>
           
           <div class="editor-content">
-            <div class="form-row">
-              <div class="form-group-half">
-                <label>Name *</label>
-                <input 
-                  v-model="editingGroup.name" 
-                  @input="markAsDirty"
-                  :readonly="selectedGroup.id.startsWith('system-')"
-                />
-              </div>
-              <div class="form-group-half">
-                <label>Description</label>
-                <input 
-                  v-model="editingGroup.description" 
-                  @input="markAsDirty"
-                  :readonly="selectedGroup.id.startsWith('system-')"
-                />
-              </div>
-            </div>
+            <el-row :gutter="20" class="form-row">
+              <el-col :span="12">
+                <div class="form-group">
+                  <label>Name *</label>
+                  <input 
+                    v-model="editingGroup.name" 
+                    @input="markAsDirty"
+                    :readonly="selectedGroup.id.startsWith('system-')"
+                  />
+                </div>
+              </el-col>
+              <el-col :span="12">
+                <div class="form-group">
+                  <label>Description</label>
+                  <input 
+                    v-model="editingGroup.description" 
+                    @input="markAsDirty"
+                    :readonly="selectedGroup.id.startsWith('system-')"
+                  />
+                </div>
+              </el-col>
+            </el-row>
             
-            <div class="form-row">
-              <div class="form-group-two-thirds">
-                <label>URL</label>
-                <input 
-                  v-model="editingGroup.url" 
-                  @input="markAsDirty"
-                  placeholder="Remote hosts URL"
-                  :readonly="selectedGroup.id.startsWith('system-')"
-                />
-              </div>
-              <div class="form-group-one-third">
-                <label>&nbsp;</label>
-                <button 
-                  class="btn btn-secondary btn-full-width" 
-                  @click="fetchRemoteContent"
-                  :disabled="!editingGroup.url || isFetchingRemote"
-                >
-                  {{ isFetchingRemote ? 'Getting...' : '获取host内容' }}
-                </button>
-              </div>
-            </div>
+            <el-row :gutter="20" class="form-row">
+              <el-col :span="16">
+                <div class="form-group">
+                  <label>URL</label>
+                  <input 
+                    v-model="editingGroup.url" 
+                    @input="markAsDirty"
+                    placeholder="Remote hosts URL"
+                    :readonly="selectedGroup.id.startsWith('system-')"
+                  />
+                </div>
+              </el-col>
+              <el-col :span="8">
+                <div class="form-group">
+                  <button
+                    class="btn btn-secondary btn-full-width" 
+                    @click="fetchRemoteContent"
+                    :disabled="!editingGroup.url || isFetchingRemote"
+                  >
+                    {{ isFetchingRemote ? 'Getting...' : '获取host内容' }}
+                  </button>
+                </div>
+              </el-col>
+            </el-row>
             
             <div class="form-group" v-if="remoteContentPreview">
               <label>Remote Content (Preview)</label>
@@ -188,22 +195,26 @@
           </div>
           
           <div class="editor-content">
-            <div class="form-row">
-              <div class="form-group-half">
-                <label>Name *</label>
-                <input 
-                  v-model="editingGroup.name" 
-                  @input="markAsDirty"
-                />
-              </div>
-              <div class="form-group-half">
-                <label>Description</label>
-                <input 
-                  v-model="editingGroup.description" 
-                  @input="markAsDirty"
-                />
-              </div>
-            </div>
+            <el-row :gutter="20" class="form-row">
+              <el-col :span="12">
+                <div class="form-group">
+                  <label>Name *</label>
+                  <input 
+                    v-model="editingGroup.name" 
+                    @input="markAsDirty"
+                  />
+                </div>
+              </el-col>
+              <el-col :span="12">
+                <div class="form-group">
+                  <label>Description</label>
+                  <input 
+                    v-model="editingGroup.description" 
+                    @input="markAsDirty"
+                  />
+                </div>
+              </el-col>
+            </el-row>
             
             <div v-if="editingGroup.isRemote" class="form-group">
               <label>URL</label>
@@ -306,20 +317,26 @@
         
         <!-- 填写Host信息 -->
         <div v-if="newGroup.typeSelected">
-          <div class="form-group">
-            <label>Name *</label>
-            <input 
-              v-model="newGroup.name" 
-              placeholder="Display name"
-            />
-          </div>
-          <div class="form-group">
-            <label>Description</label>
-            <input 
-              v-model="newGroup.description" 
-              placeholder="Description"
-            />
-          </div>
+          <el-row :gutter="20">
+            <el-col :span="12">
+              <div class="form-group">
+                <label>Name *</label>
+                <input 
+                  v-model="newGroup.name" 
+                  placeholder="Display name"
+                />
+              </div>
+            </el-col>
+            <el-col :span="12">
+              <div class="form-group">
+                <label>Description</label>
+                <input 
+                  v-model="newGroup.description" 
+                  placeholder="Description"
+                />
+              </div>
+            </el-col>
+          </el-row>
           
           <!-- 如果是远程Host，显示URL字段 -->
           <div v-if="newGroup.isRemote" class="form-group">
@@ -915,6 +932,7 @@ export default {
   margin-bottom: 5px;
   font-weight: 600;
   color: #495057;
+  text-align: left; /* 左对齐标签文本 */
 }
 
 .form-group input,
@@ -1160,56 +1178,6 @@ export default {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
-}
-
-/* 表单行布局 */
-.form-row {
-  display: flex;
-  gap: 15px;
-  margin-bottom: 20px;
-  align-items: flex-start; /* Align items to start for consistent baseline */
-}
-
-.form-group-half {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.form-group-half label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: 600;
-  color: #495057;
-  align-self: flex-start;
-}
-
-.form-group-two-thirds {
-  flex: 2;
-  display: flex;
-  flex-direction: column;
-}
-
-.form-group-two-thirds label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: 600;
-  color: #495057;
-  align-self: flex-start;
-}
-
-.form-group-one-third {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.form-group-one-third label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: 600;
-  color: #495057;
-  align-self: flex-start;
 }
 
 .btn-full-width {

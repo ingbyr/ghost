@@ -104,6 +104,11 @@ func (a *App) GetRemoteContent(url string) (string, error) {
 	return content, nil
 }
 
+// RefreshRemoteGroup 刷新指定的远程Host分组
+func (a *App) RefreshRemoteGroup(id string) error {
+	return a.hostApp.RefreshRemoteGroup(id)
+}
+
 // Greet returns a greeting for the given name
 func (a *App) Greet(name string) string {
 	return fmt.Sprintf("Hello %s, It's show time!", name)

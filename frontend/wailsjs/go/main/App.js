@@ -42,6 +42,10 @@ export function Greet(arg1) {
   return window['go']['main']['App']['Greet'](arg1);
 }
 
+export function RefreshRemoteGroup(arg1) {
+  return window['go']['main']['App']['RefreshRemoteGroup'](arg1);
+}
+
 export function RefreshRemoteGroups() {
   return window['go']['main']['App']['RefreshRemoteGroups']();
 }

@@ -426,6 +426,47 @@ func (app *HostApp) GetHostGroup(id string) (*models.HostGroup, error) {
 	return nil, fmt.Errorf("host group with ID %s not found", id)
 }
 
+// RefreshRemoteGroup 刷新指定的远程Host分组
+func (app *HostApp) RefreshRemoteGroup(id string) error {
+	manager, err := app.configStorage.LoadHostManager()
+	if err != nil {
+		return fmt.Errorf("failed to load host manager: %w", err)
+	}
+
+	var targetGroup *models.HostGroup
+	for i := range manager.Groups {
+		if manager.Groups[i].ID == id {
+			targetGroup = &manager.Groups[i]
+			break
+		}
+	}
+
+	if targetGroup == nil {
+		return fmt.Errorf("host group with ID %s not found", id)
+	}
+
+	if !targetGroup.IsRemote {
+		return fmt.Errorf("host group is not a remote group")
+	}
+
+	remoteFetcher := remote.NewRemoteFetcher()
+	err = remoteFetcher.UpdateRemoteHostGroup(targetGroup)
+	if err != nil {
+		return fmt.Errorf("failed to update remote group: %w", err)
+	}
+
+	// 更新组的更新时间
+	targetGroup.UpdatedAt = time.Now()
+	manager.UpdatedAt = time.Now()
+
+	err = app.configStorage.SaveHostManager(manager)
+	if err != nil {
+		return fmt.Errorf("failed to save host manager: %w", err)
+	}
+
+	return nil
+}
+
 // requestAdminPrivileges 尝试以管理员权限重新启动应用
 func (app *HostApp) requestAdminPrivileges() error {
 	switch runtime.GOOS {

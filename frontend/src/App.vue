@@ -87,10 +87,17 @@
             <div class="header-actions">
               <button 
                 class="btn btn-primary" 
-                @click="refreshRemoteContent"
-                :disabled="isRefreshingRemote"
+                @click="saveGroup"
+                :disabled="!isDirty"
               >
-                {{ isRefreshingRemote ? 'Refreshing...' : 'Refresh Content' }}
+                {{ isDirty ? 'Save Changes' : 'Saved' }}
+              </button>
+              <button 
+                class="btn btn-secondary" 
+                @click="cancelEdit"
+                v-if="isDirty"
+              >
+                Cancel
               </button>
             </div>
           </div>
@@ -181,20 +188,21 @@
           </div>
           
           <div class="editor-content">
-            <div class="form-group">
-              <label>Name *</label>
-              <input 
-                v-model="editingGroup.name" 
-                @input="markAsDirty"
-              />
-            </div>
-            
-            <div class="form-group">
-              <label>Description</label>
-              <input 
-                v-model="editingGroup.description" 
-                @input="markAsDirty"
-              />
+            <div class="form-row">
+              <div class="form-group-half">
+                <label>Name *</label>
+                <input 
+                  v-model="editingGroup.name" 
+                  @input="markAsDirty"
+                />
+              </div>
+              <div class="form-group-half">
+                <label>Description</label>
+                <input 
+                  v-model="editingGroup.description" 
+                  @input="markAsDirty"
+                />
+              </div>
             </div>
             
             <div v-if="editingGroup.isRemote" class="form-group">
@@ -352,7 +360,8 @@ import {
   RefreshRemoteGroups,
   GetSystemHostsContent,
   GetSystemHostPath,
-  GetRemoteContent
+  GetRemoteContent,
+  RefreshRemoteGroup
 } from '../wailsjs/go/main/App'
 
 export default {
@@ -426,6 +435,14 @@ export default {
       this.selectedGroup = group
       this.editingGroup = { ...group }
       this.isDirty = false
+      
+      // 如果是远程组，将组内容设置为预览内容
+      if (group.isRemote) {
+        this.remoteContentPreview = group.content || '';
+      } else {
+        // 如果是非远程组，清空预览内容
+        this.remoteContentPreview = '';
+      }
     },
 
     toggleGroupStatus(group) {
@@ -602,16 +619,23 @@ export default {
 
       this.isRefreshingRemote = true
       try {
-        // 从指定URL获取远程内容
-        this.remoteContentPreview = await GetRemoteContent(this.selectedGroup.url)
+        // 通过后端API刷新远程组内容，这会更新数据库中的内容
+        await RefreshRemoteGroup(this.selectedGroup.id);
         
-        // 更新本地组的content字段
-        this.selectedGroup.content = this.remoteContentPreview
-        this.editingGroup.content = this.remoteContentPreview
+        // 重新加载所有组以获取更新后的内容
+        await this.loadHostGroups();
         
-        this.showMessage('Remote content fetched successfully', 'success')
+        // 找到更新后的组并更新本地状态
+        const updatedGroup = this.groups.find(g => g.id === this.selectedGroup.id);
+        if (updatedGroup) {
+          this.selectedGroup = updatedGroup;
+          this.editingGroup = { ...updatedGroup };
+          this.remoteContentPreview = updatedGroup.content;
+        }
+        
+        this.showMessage('Remote content updated successfully', 'success')
       } catch (error) {
-        this.showMessage(`Failed to fetch remote content: ${error}`, 'error')
+        this.showMessage(`Failed to update remote content: ${error}`, 'error')
       } finally {
         this.isRefreshingRemote = false
       }
@@ -627,7 +651,25 @@ export default {
       try {
         // 从指定URL获取远程内容
         this.remoteContentPreview = await GetRemoteContent(this.editingGroup.url);
-        this.showMessage('Remote content fetched successfully', 'success');
+        
+        // 如果当前编辑的是一个已保存的远程组，则更新其内容
+        if (this.editingGroup.id && this.editingGroup.isRemote) {
+          // 更新编辑组的content
+          this.editingGroup.content = this.remoteContentPreview;
+          
+          // 更新选中组的content
+          if (this.selectedGroup && this.selectedGroup.id === this.editingGroup.id) {
+            this.selectedGroup.content = this.remoteContentPreview;
+          }
+          
+          // 更新后保存到后端
+          await UpdateHostGroup(this.editingGroup);
+          
+          // 重新加载所有组以确保数据一致性
+          await this.loadHostGroups();
+        }
+        
+        this.showMessage('Remote content fetched and saved successfully', 'success');
       } catch (error) {
         this.showMessage(`Failed to fetch remote content: ${error}`, 'error');
       } finally {
@@ -1125,6 +1167,7 @@ export default {
   display: flex;
   gap: 15px;
   margin-bottom: 20px;
+  align-items: flex-start; /* Align items to start for consistent baseline */
 }
 
 .form-group-half {
@@ -1133,10 +1176,26 @@ export default {
   flex-direction: column;
 }
 
+.form-group-half label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 600;
+  color: #495057;
+  align-self: flex-start;
+}
+
 .form-group-two-thirds {
   flex: 2;
   display: flex;
   flex-direction: column;
+}
+
+.form-group-two-thirds label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 600;
+  color: #495057;
+  align-self: flex-start;
 }
 
 .form-group-one-third {
@@ -1145,10 +1204,18 @@ export default {
   flex-direction: column;
 }
 
+.form-group-one-third label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 600;
+  color: #495057;
+  align-self: flex-start;
+}
+
 .btn-full-width {
   width: 100%;
   height: 40px;
-  margin-top: 19px; /* Align with input field */
+  margin-top: 28px; /* Adjusted to align with input field */
 }
 
 .host-type-selection {

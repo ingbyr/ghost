@@ -389,9 +389,9 @@ export default {
       }
       const query = this.searchQuery.toLowerCase()
       return this.groups.filter(group => 
-        group.name.toLowerCase().includes(query) || 
-        group.description.toLowerCase().includes(query) ||
-        group.id.toLowerCase().includes(query)
+        (group.name && group.name.toLowerCase().includes(query)) || 
+        (group.description && group.description.toLowerCase().includes(query)) ||
+        (group.id && group.id.toLowerCase().includes(query))
       )
     }
   },
@@ -712,6 +712,7 @@ export default {
   border: 1px solid #ced4da;
   border-radius: 4px;
   font-size: 14px;
+  box-sizing: border-box;
 }
 
 .tree-view {

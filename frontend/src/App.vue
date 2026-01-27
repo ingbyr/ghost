@@ -137,18 +137,6 @@
               </div>
             </div>
             
-            <div class="form-group">
-              <label>
-                <input 
-                  type="checkbox" 
-                  v-model="editingGroup.isRemote" 
-                  @change="markAsDirty"
-                  :disabled="selectedGroup.id.startsWith('system-')"
-                /> 
-                Is Remote Host?
-              </label>
-            </div>
-            
             <div class="form-group" v-if="remoteContentPreview">
               <label>Remote Content (Preview)</label>
               <textarea 
@@ -164,19 +152,6 @@
               <p><strong>Created:</strong> {{ formatDate(selectedGroup.createdAt) }}</p>
               <p><strong>Last Updated:</strong> {{ formatDate(selectedGroup.updatedAt) }}</p>
               <p><strong>ID:</strong> {{ selectedGroup.id }}</p>
-              <p><strong>Status:</strong> <span class="inline-status">
-                <div 
-                  class="switch-control" 
-                  :class="{ 'enabled': selectedGroup.enabled, 'disabled': !selectedGroup.enabled }"
-                  @click="toggleGroupStatus(selectedGroup)"
-                  :title="selectedGroup.enabled ? 'Click to disable' : 'Click to enable'"
-                  style="display: inline-block; margin-left: 10px;"
-                >
-                  <div class="switch-slider">
-                    <span class="switch-text">{{ selectedGroup.enabled ? 'ON' : 'OFF' }}</span>
-                  </div>
-                </div>
-              </span></p>
               <p><strong>Type:</strong> {{ selectedGroup.isRemote ? 'REMOTE' : 'LOCAL' }}</p>
               <p v-if="selectedGroup.lastUpdated"><strong>Last Fetched:</strong> {{ formatDate(selectedGroup.lastUpdated) }}</p>
             </div>
@@ -222,17 +197,6 @@
               />
             </div>
             
-            <div class="form-group">
-              <label>
-                <input 
-                  type="checkbox" 
-                  v-model="editingGroup.isRemote" 
-                  @change="markAsDirty"
-                /> 
-                Is Remote Host?
-              </label>
-            </div>
-            
             <div v-if="editingGroup.isRemote" class="form-group">
               <label>URL</label>
               <input 
@@ -256,19 +220,6 @@
               <p><strong>Created:</strong> {{ formatDate(selectedGroup.createdAt) }}</p>
               <p><strong>Last Updated:</strong> {{ formatDate(selectedGroup.updatedAt) }}</p>
               <p><strong>ID:</strong> {{ selectedGroup.id }}</p>
-              <p><strong>Status:</strong> <span class="inline-status">
-                <div 
-                  class="switch-control" 
-                  :class="{ 'enabled': selectedGroup.enabled, 'disabled': !selectedGroup.enabled }"
-                  @click="toggleGroupStatus(selectedGroup)"
-                  :title="selectedGroup.enabled ? 'Click to disable' : 'Click to enable'"
-                  style="display: inline-block; margin-left: 10px;"
-                >
-                  <div class="switch-slider">
-                    <span class="switch-text">{{ selectedGroup.enabled ? 'ON' : 'OFF' }}</span>
-                  </div>
-                </div>
-              </span></p>
               <p><strong>Type:</strong> {{ selectedGroup.isRemote ? 'REMOTE' : 'LOCAL' }}</p>
             </div>
           </div>
@@ -335,38 +286,49 @@
     <div v-if="showAddGroupModal" class="modal-overlay" @click="closeAddGroupModal">
       <div class="modal-content" @click.stop>
         <h3>Add New Host Group</h3>
-        <div class="form-group">
-          <label>Name *</label>
-          <input 
-            v-model="newGroup.name" 
-            placeholder="Display name"
-          />
+        
+        <!-- 选择Host类型 -->
+        <div v-if="!newGroup.typeSelected" class="form-group">
+          <label>Select Host Type</label>
+          <div class="host-type-selection">
+            <button class="btn btn-option" @click="selectHostType(false)">Local Host</button>
+            <button class="btn btn-option" @click="selectHostType(true)">Remote Host</button>
+          </div>
         </div>
-        <div class="form-group">
-          <label>Description</label>
-          <input 
-            v-model="newGroup.description" 
-            placeholder="Description"
-          />
-        </div>
-        <div class="form-group">
-          <label>
+        
+        <!-- 填写Host信息 -->
+        <div v-if="newGroup.typeSelected">
+          <div class="form-group">
+            <label>Name *</label>
             <input 
-              type="checkbox" 
-              v-model="newGroup.isRemote"
-            /> 
-            Is Remote Host?
-          </label>
+              v-model="newGroup.name" 
+              placeholder="Display name"
+            />
+          </div>
+          <div class="form-group">
+            <label>Description</label>
+            <input 
+              v-model="newGroup.description" 
+              placeholder="Description"
+            />
+          </div>
+          
+          <!-- 如果是远程Host，显示URL字段 -->
+          <div v-if="newGroup.isRemote" class="form-group">
+            <label>URL</label>
+            <input 
+              v-model="newGroup.url" 
+              placeholder="Remote hosts URL"
+            />
+          </div>
+          
+          <div class="form-row">
+            <button class="btn btn-secondary" @click="resetHostTypeSelection">Back</button>
+            <button class="btn btn-primary" @click="addGroup">Add Group</button>
+          </div>
         </div>
-        <div v-if="newGroup.isRemote" class="form-group">
-          <label>URL</label>
-          <input 
-            v-model="newGroup.url" 
-            placeholder="Remote hosts URL"
-          />
-        </div>
-        <div class="modal-actions">
-          <button class="btn btn-primary" @click="addGroup">Add Group</button>
+        
+        <div v-if="newGroup.typeSelected" class="modal-actions">
           <button class="btn btn-secondary" @click="closeAddGroupModal">Cancel</button>
         </div>
       </div>
@@ -577,8 +539,21 @@ export default {
         content: '',
         enabled: false,
         isRemote: false,
-        url: ''
+        url: '',
+        typeSelected: false
       }
+    },
+
+    selectHostType(isRemote) {
+      this.newGroup.isRemote = isRemote;
+      this.newGroup.typeSelected = true;
+    },
+
+    resetHostTypeSelection() {
+      this.newGroup.typeSelected = false;
+      this.newGroup.name = '';
+      this.newGroup.description = '';
+      this.newGroup.url = '';
     },
 
     async selectSystemHost() {
@@ -1173,5 +1148,36 @@ export default {
   width: 100%;
   height: 40px;
   margin-top: 19px; /* Align with input field */
+}
+
+.host-type-selection {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.host-type-selection .btn {
+  flex: 1;
+}
+
+.btn-option {
+  padding: 12px 16px;
+  border: 2px solid #007bff;
+  background-color: white;
+  color: #007bff;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s;
+}
+
+.btn-option:hover {
+  background-color: #007bff;
+  color: white;
+}
+
+.btn-option.selected {
+  background-color: #007bff;
+  color: white;
 }
 </style>

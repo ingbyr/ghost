@@ -1,45 +1,64 @@
-# Ghost - Host管理器
+# Ghost - AI-Powered Host Manager
 
-基于Go语言和Wails框架的跨平台Host文件切换GUI程序，支持多Host分组管理和远程Host功能。
+An advanced cross-platform GUI application built with Go and Wails framework for managing and switching host files. Features AI-driven development practices and supports multi-host group management with remote host capabilities.
 
-## 新增功能：树形结构UI
+## New Feature: Tree Structure UI
 
-最新版本引入了全新的左右分栏界面设计：
+Latest version introduces a brand new left-right panel interface design:
 
-- **左侧树形结构**：清晰展示所有Host分组
-- **右侧编辑面板**：提供详细的内容编辑功能
-- **搜索功能**：快速查找特定Host分组
-- **状态管理**：实时显示各分组启用/禁用状态
-- **防丢失保护**：检测未保存更改，防止意外丢失
+- **Left Tree Structure** - Clearly displays all host groups
+- **Right Edit Panel** - Provides detailed content editing capabilities
+- **Search Functionality** - Quickly find specific host groups
+- **Status Management** - Real-time display of group enable/disable status
+- **Data Loss Protection** - Detects unsaved changes to prevent accidental loss
 
-## 核心功能
+## Core Features
 
-1. **多Host分组管理** - 支持创建、编辑、删除和管理多个Host文件分组
-2. **远程Host支持** - 可配置URL定期拉取远程Host文件，启用后应用到本地Host
-3. **开关控制** - 可选择性地启用或禁用各个Host分组
-4. **一键应用** - 将所有启用的Host分组合并并应用到系统Hosts文件
-5. **跨平台支持** - 自动识别Windows、macOS和Linux系统的Hosts文件位置及权限要求
+1. **Multi-Host Group Management** - Create, edit, delete and manage multiple host file groups with intuitive UI
+2. **Remote Host Support** - Configure URLs to periodically fetch remote host files and apply them locally
+3. **Smart Toggle Controls** - Selectively enable/disable host groups with visual indicators
+4. **One-Click Application** - Merge and apply all enabled host groups to system hosts file in one click
+5. **Cross-Platform Compatibility** - Automatically detects hosts file locations across Windows, macOS, and Linux systems with appropriate permission handling
 
-## 技术架构
+## Technical Architecture
 
-- **前端** - Vue.js + Wails框架构建桌面界面
-- **后端** - Go语言实现业务逻辑
-- **数据存储** - 基于JSON文件的持久化存储方案
-- **远程获取** - 支持从URL获取远程Host内容并验证格式
+- **Frontend** - Vue 3 + Element Plus UI library with modern component architecture
+- **Backend** - Go language implementing business logic and system interactions
+- **Desktop Framework** - Wails framework bridging Go backend with web technologies
+- **Data Persistence** - JSON-based file storage solution with backup capabilities
+- **Remote Fetching** - Secure URL-based host content retrieval with validation
+- **AI-Enhanced Development** - AI-assisted code generation, refactoring, and optimization
 
-## 跨平台兼容性
+## AI-Driven Development Highlights
+
+- **Component Architecture** - Clean separation of concerns with dedicated components for local/remote hosts, system preview, and action controls
+- **Intelligent State Management** - Smart dirty state detection with floating save buttons that appear only when content is modified
+- **Responsive UI Design** - Adaptive layout with tree view navigation and dynamic content panels
+- **Smart Validation** - Real-time form validation and content verification
+- **Automated Refactoring** - AI-assisted migration from monolithic component to modular architecture
+
+## Cross-Platform Compatibility
 
 - **Windows**: `C:\Windows\System32\drivers\etc\hosts`
 - **Unix/Linux/macOS**: `/etc/hosts`
-- **权限管理**: 需要管理员权限来修改系统Hosts文件
+- **Permissions**: Requires administrator privileges for system hosts file modification
 
-## 开发说明
+## Development Approach
+
+Built using AI-assisted development methodologies with:
+- Component-based architecture for improved maintainability
+- Intelligent state management patterns
+- Automated code quality checks
+- AI-enhanced refactoring and optimization
+- Smart UI/UX design patterns
+
+## Development Setup
 
 To run in live development mode, run `wails dev` in the project directory. This will run a Vite development
 server that will provide very fast hot reload of your frontend changes. If you want to develop in a browser
 and have access to your Go methods, there is also a dev server that runs on http://localhost:34115. Connect
 to this in your browser, and you can call your Go code from devtools.
 
-## 构建
+## Build
 
 To build a redistributable, production mode package, use `wails build`.

@@ -2,9 +2,6 @@
   <div class="group-editor">
     <div class="editor-header">
       <h3>System Host File</h3>
-      <div class="header-actions">
-        <button class="btn btn-secondary" @click="refreshSystemHost">Refresh</button>
-      </div>
     </div>
     
     <div class="editor-content">

@@ -265,7 +265,7 @@ export default {
 
     async selectSystemHost() {
       try {
-        // 获取系统host路径和内容
+        // 获取系统host路径和内容（每次都重新获取最新内容）
         this.systemHostPath = await GetSystemHostPath()
         this.systemHostContent = await GetSystemHostsContent()
         

@@ -2,22 +2,6 @@
   <div class="group-editor">
     <div class="editor-header">
       <h3>{{ group.name }}</h3>
-      <div class="header-actions">
-        <button 
-          class="btn btn-primary" 
-          @click="saveGroup"
-          :disabled="!isDirty"
-        >
-          {{ isDirty ? 'Save Changes' : 'Saved' }}
-        </button>
-        <button 
-          class="btn btn-secondary" 
-          @click="cancelEdit"
-          v-if="isDirty"
-        >
-          Cancel
-        </button>
-      </div>
     </div>
     
     <div class="editor-content">
@@ -87,6 +71,22 @@
         <p><strong>Type:</strong> {{ group.isRemote ? 'REMOTE' : 'LOCAL' }}</p>
         <p v-if="group.lastUpdated"><strong>Last Fetched:</strong> {{ formatDate(group.lastUpdated) }}</p>
       </div>
+    </div>
+    
+    <!-- 浮动保存按钮 -->
+    <div class="floating-save-btn" v-if="isDirty">
+      <button 
+        class="btn btn-primary" 
+        @click="saveGroup"
+      >
+        Save Changes
+      </button>
+      <button 
+        class="btn btn-secondary" 
+        @click="cancelEdit"
+      >
+        Cancel
+      </button>
     </div>
   </div>
 </template>
@@ -163,6 +163,7 @@ export default {
   display: flex;
   flex-direction: column;
   height: 100%;
+  position: relative;
 }
 
 .editor-header {
@@ -284,5 +285,19 @@ export default {
 .disabled-input {
   background-color: #e9ecef;
   cursor: not-allowed;
+}
+
+.floating-save-btn {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  display: flex;
+  gap: 10px;
+  z-index: 1000;
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border: 1px solid #dee2e6;
 }
 </style>

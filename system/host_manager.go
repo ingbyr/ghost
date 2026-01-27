@@ -168,8 +168,12 @@ func (hm *HostManager) ApplyHostGroups(hostGroups []map[string]interface{}) erro
 	ghostContent.WriteString(GhostSectionEnd)
 	ghostContent.WriteString("\n") // 确保文件末尾有换行
 
-	// 组合最终内容
-	finalContent := contentWithoutGhost + ghostContent.String()
+	// 确保原内容以换行结尾，避免与Ghost段内容连在一起
+	if contentWithoutGhost != "" && !strings.HasSuffix(contentWithoutGhost, "\n") {
+		contentWithoutGhost += "\n"
+	}
+	// 组合最终内容，确保不产生多余空行
+	finalContent := strings.TrimRight(contentWithoutGhost, "\n") + "\n" + ghostContent.String()
 
 	// 写入系统hosts文件
 	err = hm.WriteSystemHosts(finalContent)

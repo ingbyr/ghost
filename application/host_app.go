@@ -223,10 +223,24 @@ func (app *HostApp) ApplyHosts() error {
 		return fmt.Errorf("failed to load host manager: %w", err)
 	}
 
+	// 在应用之前刷新所有远程组
+	log.Println("Refreshing remote host groups before applying to system")
+	err = app.RefreshRemoteGroups()
+	if err != nil {
+		log.Printf("Warning: failed to refresh remote groups: %v", err)
+		// 即使刷新失败也要继续应用，因为可能有本地组仍需要应用
+	}
+	// 重新加载管理器以获取最新数据
+	manager, err = app.configStorage.LoadHostManager()
+	if err != nil {
+		return fmt.Errorf("failed to reload host manager: %w", err)
+	}
+
 	// 收集所有启用的组
 	var activeGroups []map[string]interface{}
 	for _, group := range manager.Groups {
 		if group.Enabled {
+			log.Printf("Applying group: %s (Remote: %t, Enabled: %t)", group.Name, group.IsRemote, group.Enabled)
 			activeGroups = append(activeGroups, map[string]interface{}{
 				"id":      group.ID,
 				"name":    group.Name,
@@ -289,19 +303,23 @@ func (app *HostApp) RefreshRemoteGroups() error {
 	remoteFetcher := remote.NewRemoteFetcher()
 	updated := false
 
-	for i, group := range manager.Groups {
+	for i := range manager.Groups {
+		group := &manager.Groups[i]
 		if group.IsRemote && group.URL != "" {
+			log.Printf("Fetching remote content from URL: %s for group: %s", group.URL, group.Name)
 			oldContent := group.Content
-			err := remoteFetcher.UpdateRemoteHostGroup(&manager.Groups[i])
+			err := remoteFetcher.UpdateRemoteHostGroup(group)
 			if err != nil {
-				log.Printf("Error updating remote group %s: %v", group.Name, err)
+				log.Printf("Error updating remote group %s from URL %s: %v", group.Name, group.URL, err)
 				continue
 			}
 
 			// 检查内容是否有变化
 			if oldContent != group.Content {
-				log.Printf("Remote group %s updated", group.Name)
+				log.Printf("Remote group %s updated with new content", group.Name)
 				updated = true
+			} else {
+				log.Printf("Remote group %s content unchanged", group.Name)
 			}
 		}
 	}
@@ -312,6 +330,7 @@ func (app *HostApp) RefreshRemoteGroups() error {
 		if err != nil {
 			return fmt.Errorf("failed to save updated host manager: %w", err)
 		}
+		log.Println("Successfully saved updated host manager with new remote content")
 	}
 
 	return nil

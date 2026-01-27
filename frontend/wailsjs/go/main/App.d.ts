@@ -14,6 +14,8 @@ export function GetHostGroup(arg1:string):Promise<models.HostGroup>;
 
 export function GetHostGroups():Promise<Array<models.HostGroup>>;
 
+export function GetRemoteContent(arg1:string):Promise<string>;
+
 export function GetSystemHostPath():Promise<string>;
 
 export function GetSystemHostsContent():Promise<string>;

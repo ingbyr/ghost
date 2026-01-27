@@ -80,7 +80,111 @@
       
       <!-- 右侧面板 - 编辑内容 -->
       <div class="main-panel">
-        <div v-if="selectedGroup && selectedGroup.id !== 'system-host'" class="group-editor">
+        <!-- 远程Host预览 -->
+        <div v-if="selectedGroup && selectedGroup.isRemote && selectedGroup.id !== 'system-host'" class="group-editor">
+          <div class="editor-header">
+            <h3>{{ selectedGroup.name }}</h3>
+            <div class="header-actions">
+              <button 
+                class="btn btn-primary" 
+                @click="refreshRemoteContent"
+                :disabled="isRefreshingRemote"
+              >
+                {{ isRefreshingRemote ? 'Refreshing...' : 'Refresh Content' }}
+              </button>
+            </div>
+          </div>
+          
+          <div class="editor-content">
+            <div class="form-row">
+              <div class="form-group-half">
+                <label>Name *</label>
+                <input 
+                  v-model="editingGroup.name" 
+                  @input="markAsDirty"
+                  :readonly="selectedGroup.id.startsWith('system-')"
+                />
+              </div>
+              <div class="form-group-half">
+                <label>Description</label>
+                <input 
+                  v-model="editingGroup.description" 
+                  @input="markAsDirty"
+                  :readonly="selectedGroup.id.startsWith('system-')"
+                />
+              </div>
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group-two-thirds">
+                <label>URL</label>
+                <input 
+                  v-model="editingGroup.url" 
+                  @input="markAsDirty"
+                  placeholder="Remote hosts URL"
+                  :readonly="selectedGroup.id.startsWith('system-')"
+                />
+              </div>
+              <div class="form-group-one-third">
+                <label>&nbsp;</label>
+                <button 
+                  class="btn btn-secondary btn-full-width" 
+                  @click="fetchRemoteContent"
+                  :disabled="!editingGroup.url || isFetchingRemote"
+                >
+                  {{ isFetchingRemote ? 'Getting...' : '获取host内容' }}
+                </button>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label>
+                <input 
+                  type="checkbox" 
+                  v-model="editingGroup.isRemote" 
+                  @change="markAsDirty"
+                  :disabled="selectedGroup.id.startsWith('system-')"
+                /> 
+                Is Remote Host?
+              </label>
+            </div>
+            
+            <div class="form-group" v-if="remoteContentPreview">
+              <label>Remote Content (Preview)</label>
+              <textarea 
+                :value="remoteContentPreview" 
+                readonly
+                placeholder="Remote content will be displayed here after refresh..."
+                rows="15"
+                class="disabled-input"
+              ></textarea>
+            </div>
+            
+            <div class="group-meta">
+              <p><strong>Created:</strong> {{ formatDate(selectedGroup.createdAt) }}</p>
+              <p><strong>Last Updated:</strong> {{ formatDate(selectedGroup.updatedAt) }}</p>
+              <p><strong>ID:</strong> {{ selectedGroup.id }}</p>
+              <p><strong>Status:</strong> <span class="inline-status">
+                <div 
+                  class="switch-control" 
+                  :class="{ 'enabled': selectedGroup.enabled, 'disabled': !selectedGroup.enabled }"
+                  @click="toggleGroupStatus(selectedGroup)"
+                  :title="selectedGroup.enabled ? 'Click to disable' : 'Click to enable'"
+                  style="display: inline-block; margin-left: 10px;"
+                >
+                  <div class="switch-slider">
+                    <span class="switch-text">{{ selectedGroup.enabled ? 'ON' : 'OFF' }}</span>
+                  </div>
+                </div>
+              </span></p>
+              <p><strong>Type:</strong> {{ selectedGroup.isRemote ? 'REMOTE' : 'LOCAL' }}</p>
+              <p v-if="selectedGroup.lastUpdated"><strong>Last Fetched:</strong> {{ formatDate(selectedGroup.lastUpdated) }}</p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 本地Host编辑 -->
+        <div v-else-if="selectedGroup && !selectedGroup.isRemote && selectedGroup.id !== 'system-host'" class="group-editor">
           <div class="editor-header">
             <h3>{{ selectedGroup.name }}</h3>
             <div class="header-actions">
@@ -285,7 +389,8 @@ import {
   ApplyHosts, 
   RefreshRemoteGroups,
   GetSystemHostsContent,
-  GetSystemHostPath
+  GetSystemHostPath,
+  GetRemoteContent
 } from '../wailsjs/go/main/App'
 
 export default {
@@ -309,7 +414,10 @@ export default {
       messageType: '', // 'success', 'error', 'info'
       isDirty: false,
       systemHostPath: '',
-      systemHostContent: ''
+      systemHostContent: '',
+      remoteContentPreview: '',
+      isRefreshingRemote: false,
+      isFetchingRemote: false
     }
   },
   computed: {
@@ -327,6 +435,7 @@ export default {
   },
   async mounted() {
     await this.loadHostGroups()
+    await this.selectSystemHost()
   },
   methods: {
     async loadHostGroups() {
@@ -507,6 +616,47 @@ export default {
         this.showMessage('System host file refreshed', 'info')
       } catch (error) {
         this.showMessage(`Failed to refresh system host file: ${error}`, 'error')
+      }
+    },
+
+    async refreshRemoteContent() {
+      if (!this.selectedGroup || !this.selectedGroup.isRemote || !this.selectedGroup.url) {
+        this.showMessage('No remote URL configured for this group', 'error')
+        return
+      }
+
+      this.isRefreshingRemote = true
+      try {
+        // 从指定URL获取远程内容
+        this.remoteContentPreview = await GetRemoteContent(this.selectedGroup.url)
+        
+        // 更新本地组的content字段
+        this.selectedGroup.content = this.remoteContentPreview
+        this.editingGroup.content = this.remoteContentPreview
+        
+        this.showMessage('Remote content fetched successfully', 'success')
+      } catch (error) {
+        this.showMessage(`Failed to fetch remote content: ${error}`, 'error')
+      } finally {
+        this.isRefreshingRemote = false
+      }
+    },
+
+    async fetchRemoteContent() {
+      if (!this.editingGroup.url) {
+        this.showMessage('Please enter a URL first', 'error');
+        return;
+      }
+
+      this.isFetchingRemote = true;
+      try {
+        // 从指定URL获取远程内容
+        this.remoteContentPreview = await GetRemoteContent(this.editingGroup.url);
+        this.showMessage('Remote content fetched successfully', 'success');
+      } catch (error) {
+        this.showMessage(`Failed to fetch remote content: ${error}`, 'error');
+      } finally {
+        this.isFetchingRemote = false;
       }
     },
 
@@ -992,5 +1142,36 @@ export default {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
+}
+
+/* 表单行布局 */
+.form-row {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.form-group-half {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group-two-thirds {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group-one-third {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.btn-full-width {
+  width: 100%;
+  height: 40px;
+  margin-top: 19px; /* Align with input field */
 }
 </style>

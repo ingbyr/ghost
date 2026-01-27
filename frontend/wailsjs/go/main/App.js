@@ -26,6 +26,10 @@ export function GetHostGroups() {
   return window['go']['main']['App']['GetHostGroups']();
 }
 
+export function GetRemoteContent(arg1) {
+  return window['go']['main']['App']['GetRemoteContent'](arg1);
+}
+
 export function GetSystemHostPath() {
   return window['go']['main']['App']['GetSystemHostPath']();
 }

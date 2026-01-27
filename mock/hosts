@@ -1,0 +1,15 @@
+# Copyright (c) 1993-2009 Microsoft Corp.
+#
+# This is a sample HOSTS file used by Microsoft TCP/IP for Windows.
+#
+
+# localhost name resolution is handled within DNS itself.
+127.0.0.1       localhost
+::1             localhost
+
+# Sample host entries for testing
+127.0.0.1       test.local
+192.168.1.100   api.example.com
+10.0.0.50       db.internal
+203.0.113.10    staging.server.com
+198.51.100.20   backup.service.org

@@ -6,6 +6,7 @@ import (
 
 	"ghost/application"
 	"ghost/models"
+	"ghost/remote"
 )
 
 // App struct
@@ -91,6 +92,16 @@ func (a *App) UpdateConfig(config models.AppConfig) error {
 // GetHostGroup 获取指定ID的Host分组
 func (a *App) GetHostGroup(id string) (*models.HostGroup, error) {
 	return a.hostApp.GetHostGroup(id)
+}
+
+// GetRemoteContent 获取指定URL的远程hosts内容
+func (a *App) GetRemoteContent(url string) (string, error) {
+	remoteFetcher := remote.NewRemoteFetcher()
+	content, err := remoteFetcher.FetchRemoteHosts(url)
+	if err != nil {
+		return "", fmt.Errorf("failed to fetch remote content: %w", err)
+	}
+	return content, nil
 }
 
 // Greet returns a greeting for the given name

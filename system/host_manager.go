@@ -7,6 +7,8 @@ import (
 	"runtime"
 	"strings"
 	"time"
+
+	"ghost/storage"
 )
 
 const (
@@ -68,9 +70,40 @@ func (hm *HostManager) WriteSystemHosts(content string) error {
 	return nil
 }
 
+// getAppDataDir 获取应用程序数据目录
+func (hm *HostManager) getAppDataDir() (string, error) {
+	usr, err := os.UserHomeDir()
+	if err != nil {
+		return "", err
+	}
+
+	appDataPath := filepath.Join(usr, storage.AppDataDir)
+	err = os.MkdirAll(appDataPath, 0755)
+	if err != nil {
+		return "", err
+	}
+
+	backupPath := filepath.Join(appDataPath, storage.BackupDir)
+	err = os.MkdirAll(backupPath, 0755)
+	if err != nil {
+		return "", err
+	}
+
+	return backupPath, nil
+}
+
 // createBackup 创建系统hosts文件备份
 func (hm *HostManager) createBackup() string {
-	backupPath := hm.SystemHostPath + GhostBackupExt + "_" + time.Now().Format("20060102_150405")
+	// 获取应用数据目录用于备份
+	backupDir, err := hm.getAppDataDir()
+	if err != nil {
+		fmt.Printf("Warning: failed to get app data directory for backup: %v\n", err)
+		return ""
+	}
+
+	// 构建备份文件路径
+	backupFileName := filepath.Base(hm.SystemHostPath) + GhostBackupExt + "_" + time.Now().Format("20060102_150405")
+	backupPath := filepath.Join(backupDir, backupFileName)
 
 	// 读取原文件内容
 	content, err := os.ReadFile(hm.SystemHostPath)
@@ -224,7 +257,14 @@ func (hm *HostManager) RestoreFromBackup(backupPath string) error {
 
 // ListBackups 列出所有可用的备份文件
 func (hm *HostManager) ListBackups() ([]string, error) {
-	pattern := filepath.Base(hm.SystemHostPath) + GhostBackupExt + "*"
+	// 获取应用数据目录中的备份
+	backupDir, err := hm.getAppDataDir()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get app data directory: %w", err)
+	}
+
+	// 构建匹配模式
+	pattern := filepath.Join(backupDir, filepath.Base(hm.SystemHostPath)+GhostBackupExt+"*")
 
 	matches, err := filepath.Glob(pattern)
 	if err != nil {

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"sort"
 	"sync"
 	"time"
 
@@ -105,8 +106,8 @@ func (cs *ConfigStorage) LoadHostManager() (*models.HostManager, error) {
 			Config:    models.AppConfig{},
 			Groups:    []models.HostGroup{},
 			Version:   "1.0.0",
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
+			CreatedAt: time.Now().Format(time.RFC3339),
+			UpdatedAt: time.Now().Format(time.RFC3339),
 		}, nil
 	}
 
@@ -129,7 +130,7 @@ func (cs *ConfigStorage) SaveHostManager(manager *models.HostManager) error {
 	cs.mutex.Lock()
 	defer cs.mutex.Unlock()
 
-	manager.UpdatedAt = time.Now()
+	manager.UpdatedAt = time.Now().Format(time.RFC3339)
 
 	data, err := json.MarshalIndent(manager, "", "  ")
 	if err != nil {
@@ -219,7 +220,9 @@ func (cs *ConfigStorage) cleanupOldBackups() error {
 	}
 
 	// 按修改时间排序（最新的在前）
-	// TODO: 实际实现时需要按名称或时间戳排序
+	sort.Slice(backupFiles, func(i, j int) bool {
+		return backupFiles[i].ModTime().After(backupFiles[j].ModTime())
+	})
 
 	// 删除超出最大数量的备份
 	config, err := cs.LoadConfig()
@@ -234,7 +237,11 @@ func (cs *ConfigStorage) cleanupOldBackups() error {
 
 	if len(backupFiles) > maxBackups {
 		for i := maxBackups; i < len(backupFiles); i++ {
-			os.Remove(filepath.Join(backupPath, backupFiles[i].Name()))
+			err := os.Remove(filepath.Join(backupPath, backupFiles[i].Name()))
+			if err != nil {
+				// 记录错误但不停止整个过程
+				continue
+			}
 		}
 	}
 

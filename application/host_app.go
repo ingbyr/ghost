@@ -83,13 +83,13 @@ func (app *HostApp) AddHostGroup(group models.HostGroup) error {
 	}
 
 	// 设置默认值
-	if group.CreatedAt.IsZero() {
-		group.CreatedAt = time.Now()
+	if group.CreatedAt == "" {
+		group.CreatedAt = time.Now().Format(time.RFC3339)
 	}
-	group.UpdatedAt = time.Now()
+	group.UpdatedAt = time.Now().Format(time.RFC3339)
 
 	manager.Groups = append(manager.Groups, group)
-	manager.UpdatedAt = time.Now()
+	manager.UpdatedAt = time.Now().Format(time.RFC3339)
 
 	err = app.configStorage.SaveHostManager(manager)
 	if err != nil {
@@ -121,7 +121,7 @@ func (app *HostApp) UpdateHostGroup(group models.HostGroup) error {
 
 			// 保留创建时间
 			group.CreatedAt = existingGroup.CreatedAt
-			group.UpdatedAt = time.Now()
+			group.UpdatedAt = time.Now().Format(time.RFC3339)
 
 			manager.Groups[i] = group
 			updated = true
@@ -133,7 +133,7 @@ func (app *HostApp) UpdateHostGroup(group models.HostGroup) error {
 		return fmt.Errorf("host group with ID %s not found", group.ID)
 	}
 
-	manager.UpdatedAt = time.Now()
+	manager.UpdatedAt = time.Now().Format(time.RFC3339)
 	err = app.configStorage.SaveHostManager(manager)
 	if err != nil {
 		return fmt.Errorf("failed to save host manager: %w", err)
@@ -165,7 +165,7 @@ func (app *HostApp) DeleteHostGroup(id string) error {
 	}
 
 	manager.Groups = updatedGroups
-	manager.UpdatedAt = time.Now()
+	manager.UpdatedAt = time.Now().Format(time.RFC3339)
 
 	err = app.configStorage.SaveHostManager(manager)
 	if err != nil {
@@ -186,7 +186,7 @@ func (app *HostApp) ToggleHostGroup(id string, enabled bool) error {
 	for i, group := range manager.Groups {
 		if group.ID == id {
 			manager.Groups[i].Enabled = enabled
-			manager.Groups[i].UpdatedAt = time.Now()
+			manager.Groups[i].UpdatedAt = time.Now().Format(time.RFC3339)
 			updated = true
 			break
 		}
@@ -196,7 +196,7 @@ func (app *HostApp) ToggleHostGroup(id string, enabled bool) error {
 		return fmt.Errorf("host group with ID %s not found", id)
 	}
 
-	manager.UpdatedAt = time.Now()
+	manager.UpdatedAt = time.Now().Format(time.RFC3339)
 	err = app.configStorage.SaveHostManager(manager)
 	if err != nil {
 		return fmt.Errorf("failed to save host manager: %w", err)
@@ -296,7 +296,7 @@ func (app *HostApp) RefreshRemoteGroups() error {
 	}
 
 	if updated {
-		manager.UpdatedAt = time.Now()
+		manager.UpdatedAt = time.Now().Format(time.RFC3339)
 		err = app.configStorage.SaveHostManager(manager)
 		if err != nil {
 			return fmt.Errorf("failed to save updated host manager: %w", err)
@@ -328,10 +328,11 @@ func (app *HostApp) StartAutoRefresh() error {
 	app.autoRefresh = true
 	interval := config.RefreshInterval
 	if interval == 0 {
-		interval = 3600 // 默认1小时
+		interval = 3600 // 默认1小时（秒）
 	}
 
 	go func() {
+		// 将秒数转换为Duration
 		ticker := time.NewTicker(time.Duration(interval) * time.Second)
 		defer ticker.Stop()
 
@@ -372,7 +373,7 @@ func (app *HostApp) GetConfig() (*models.AppConfig, error) {
 
 // UpdateConfig 更新应用程序配置
 func (app *HostApp) UpdateConfig(config *models.AppConfig) error {
-	config.UpdatedAt = time.Now()
+	config.UpdatedAt = time.Now().Format(time.RFC3339)
 	return app.configStorage.SaveConfig(config)
 }
 
@@ -432,8 +433,8 @@ func (app *HostApp) RefreshRemoteGroup(id string) error {
 	}
 
 	// 更新组的更新时间
-	targetGroup.UpdatedAt = time.Now()
-	manager.UpdatedAt = time.Now()
+	targetGroup.UpdatedAt = time.Now().Format(time.RFC3339)
+	manager.UpdatedAt = time.Now().Format(time.RFC3339)
 
 	err = app.configStorage.SaveHostManager(manager)
 	if err != nil {

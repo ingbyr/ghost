@@ -10,6 +10,7 @@
       @cancel-edit="$emit('cancel-edit')"
       @fetch-remote-content="$emit('fetch-remote-content')"
       @mark-as-dirty="$emit('mark-as-dirty')"
+      @apply-hosts="$emit('apply-hosts')"
     />
     
     <LocalHostEditor
@@ -78,7 +79,8 @@ export default {
     'cancel-edit', 
     'fetch-remote-content', 
     'mark-as-dirty',
-    'refresh-system-host'
+    'refresh-system-host',
+    'apply-hosts'
   ]
 }
 </script>

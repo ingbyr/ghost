@@ -12,6 +12,7 @@
             <input 
               v-model="localEditingGroup.name" 
               @input="markAsDirty"
+              :disabled="isReadOnly"
             />
           </div>
         </el-col>
@@ -21,6 +22,7 @@
             <input 
               v-model="localEditingGroup.description" 
               @input="markAsDirty"
+              :disabled="isReadOnly"
             />
           </div>
         </el-col>
@@ -32,14 +34,20 @@
           v-model="localEditingGroup.url" 
           @input="markAsDirty"
           placeholder="Remote hosts URL"
+          :disabled="isReadOnly"
         />
       </div>
       
       <div v-if="!localEditingGroup.isRemote" class="form-group">
-        <label>Content</label>
+        <label>
+          Content
+          <span v-if="isReadOnly" class="read-only-hint"> (启用后无法修改)</span>
+        </label>
+        <!-- 启用时为只读状态，禁用时为可编辑状态 -->
         <textarea 
-          v-model="localEditingGroup.content" 
-          @input="markAsDirty"
+          :value="localEditingGroup.content"
+          @input="!isReadOnly ? handleContentInput($event) : null"
+          :readonly="isReadOnly"
           placeholder="Enter host entries here..."
           rows="20"
         ></textarea>
@@ -50,11 +58,16 @@
         <p><strong>Last Updated:</strong> {{ formatDate(group.updatedAt) }}</p>
         <p><strong>ID:</strong> {{ group.id }}</p>
         <p><strong>Type:</strong> {{ group.isRemote ? 'REMOTE' : 'LOCAL' }}</p>
+        <p><strong>Status:</strong> 
+          <span :class="{'status-enabled': group.enabled, 'status-disabled': !group.enabled}">
+            {{ group.enabled ? 'ENABLED' : 'DISABLED' }}
+          </span>
+        </p>
       </div>
     </div>
     
-    <!-- 浮动保存按钮 -->
-    <div class="floating-save-btn" v-if="isDirty">
+    <!-- 浮动保存按钮，只在非只读模式下显示 -->
+    <div class="floating-save-btn" v-if="isDirty && !isReadOnly">
       <button 
         class="btn btn-primary" 
         @click="saveGroup"
@@ -99,6 +112,10 @@ export default {
   computed: {
     isDirty() {
       return JSON.stringify(this.localEditingGroup) !== JSON.stringify(this.group);
+    },
+    // 计算属性：如果组已启用，则不允许编辑（仅适用于本地组）
+    isReadOnly() {
+      return this.group.enabled === true && !this.group.isRemote;
     }
   },
   watch: {
@@ -110,13 +127,26 @@ export default {
     }
   },
   methods: {
+    handleContentInput(event) {
+      // 更新本地编辑组的内容
+      this.localEditingGroup.content = event.target.value;
+      this.markAsDirty();
+    },
     saveGroup() {
+      // 如果是只读模式，则不允许保存
+      if (this.isReadOnly) {
+        return;
+      }
       this.$emit('save-group', this.localEditingGroup);
     },
     cancelEdit() {
       this.$emit('cancel-edit');
     },
     markAsDirty() {
+      // 如果是只读模式，则不允许标记为dirty
+      if (this.isReadOnly) {
+        return;
+      }
       this.$emit('mark-as-dirty');
     },
     formatDate(dateString) {
@@ -169,6 +199,12 @@ export default {
   font-weight: 600;
   color: #495057;
   text-align: left; /* 左对齐标签文本 */
+}
+
+.read-only-hint {
+  color: #6c757d;
+  font-size: 0.9em;
+  font-weight: normal;
 }
 
 .form-group input,

@@ -17,8 +17,9 @@ Latest version introduces a brand new left-right panel interface design:
 1. **Multi-Host Group Management** - Create, edit, delete and manage multiple host file groups with intuitive UI
 2. **Remote Host Support** - Configure URLs to periodically fetch remote host files and apply them locally
 3. **Smart Toggle Controls** - Selectively enable/disable host groups with visual indicators
-4. **One-Click Application** - Merge and apply all enabled host groups to system hosts file in one click
-5. **Cross-Platform Compatibility** - Automatically detects hosts file locations across Windows, macOS, and Linux systems with appropriate permission handling
+4. **Auto-Sync Enabled Groups** - When remote host content is updated (via "获取host内容" button or "Refresh Remote Groups"), automatically applies changes to system hosts if the group is enabled
+5. **One-Click Application** - Merge and apply all enabled host groups to system hosts file in one click
+6. **Cross-Platform Compatibility** - Automatically detects hosts file locations across Windows, macOS, and Linux systems with appropriate permission handling
 
 ## Technical Architecture
 
@@ -43,6 +44,13 @@ Latest version introduces a brand new left-right panel interface design:
 - **Unix/Linux/macOS**: `/etc/hosts`
 - **Permissions**: Requires administrator privileges for system hosts file modification
 
+## Remote Host Behavior
+
+- **Enable/Disable**: Toggling a remote host group only enables/disables it without fetching fresh content. The system hosts file is updated to reflect the enabled/disabled state, but the remote content itself is not refreshed.
+- **Read-only Mode**: When a host group (local or remote) is enabled, the editor switches to read-only preview mode to prevent accidental modifications to active content.
+- **Content Updates**: Click "获取host内容" or "Refresh Remote Groups" to manually update remote host content.
+- **Auto-Apply**: When a remote host group is enabled and its content is updated, changes are automatically applied to the system hosts file if the group is enabled
+
 ## Development Approach
 
 Built using AI-assisted development methodologies with:
@@ -52,11 +60,18 @@ Built using AI-assisted development methodologies with:
 - AI-enhanced refactoring and optimization
 - Smart UI/UX design patterns
 
+## User Interface
+
+The application provides a clean, intuitive interface with:
+- **Action Bar** - Contains "Refresh Remote Groups" and "Backup Now" buttons
+- **Automatic Apply Behavior** - Hosts are automatically applied to the system when groups are toggled, saved, or refreshed (if the group is enabled)
+- **System Host Preview** - Shows current system hosts file content with refresh capability
+
 ## Development Setup
 
 To run in live development mode, run `wails dev` in the project directory. This will run a Vite development
 server that will provide very fast hot reload of your frontend changes. If you want to develop in a browser
-and have access to your Go methods, there is also a dev server that runs on http://localhost:34115. Connect
+have access to your Go methods, there is also a dev server that runs on http://localhost:34115. Connect
 to this in your browser, and you can call your Go code from devtools.
 
 ## Build

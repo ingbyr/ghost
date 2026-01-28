@@ -6,6 +6,14 @@ export function AddHostGroup(arg1:models.HostGroup):Promise<void>;
 
 export function ApplyHosts():Promise<void>;
 
+export function BackupAppAndSystemHosts():Promise<string>;
+
+export function BackupConfig():Promise<void>;
+
+export function BackupData():Promise<void>;
+
+export function CreateSystemHostsBackup():Promise<string>;
+
 export function DeleteHostGroup(arg1:string):Promise<void>;
 
 export function GetConfig():Promise<models.AppConfig>;

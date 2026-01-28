@@ -25,13 +25,14 @@
         @fetch-remote-content="fetchRemoteContent"
         @mark-as-dirty="markAsDirty"
         @refresh-system-host="refreshSystemHost"
+        @apply-hosts="applyHosts"
       />
     </div>
     
     <ActionBar
-      @apply-hosts="applyHosts"
       @refresh-remote="refreshRemote"
       @refresh-list="loadHostGroups"
+      @backup-now="backupNow"
     />
     
     <AddGroupModal
@@ -61,7 +62,10 @@ import {
   GetSystemHostsContent,
   GetSystemHostPath,
   GetRemoteContent,
-  RefreshRemoteGroup
+  RefreshRemoteGroup,
+  BackupConfig,
+  CreateSystemHostsBackup,
+  BackupAppAndSystemHosts
 } from '../wailsjs/go/main/App'
 
 import Sidebar from './components/Sidebar.vue';
@@ -111,11 +115,23 @@ export default {
       try {
         this.groups = await GetHostGroups()
         if (this.selectedGroup) {
-          // 更新选中的组（以防数据有变化）
-          this.selectedGroup = this.groups.find(g => g.id === this.selectedGroup.id) || null
-          if (this.selectedGroup) {
-            this.editingGroup = { ...this.selectedGroup }
-            this.isDirty = false
+          // 如果当前选中的是系统hosts文件，保持选择不变
+          if (this.selectedGroup.id === 'system-host') {
+            // 但仍然更新系统hosts内容
+            await this.selectSystemHost();
+          } else {
+            // 更新选中的组（以防数据有变化）
+            const updatedGroup = this.groups.find(g => g.id === this.selectedGroup.id);
+            if (updatedGroup) {
+              this.selectedGroup = updatedGroup;
+              this.editingGroup = { ...updatedGroup };
+              this.isDirty = false;
+            } else {
+              // 如果找不到对应的组，清空选择
+              this.selectedGroup = null;
+              this.editingGroup = {};
+              this.isDirty = false;
+            }
           }
         }
         this.showMessage('Groups loaded successfully', 'info')
@@ -153,10 +169,43 @@ export default {
           if (this.selectedGroup && this.selectedGroup.id === group.id) {
             this.editingGroup.enabled = newStatus
           }
+          
+          // 重新加载组数据以确保UI状态一致
+          this.loadHostGroups();
+          
+          // 启用或禁用组后，应用所有启用的Hosts
+          // 注意：启用远程组时不再自动更新远程内容，只在用户主动点击按钮时更新
+          this.applyHosts();
         })
         .catch(error => {
           this.showMessage(`Failed to toggle group: ${error}`, 'error')
         })
+    },
+    
+    async refreshSpecificRemoteGroup(groupId) {
+      try {
+        // 通过后端API刷新指定的远程组内容
+        await RefreshRemoteGroup(groupId);
+        
+        // 重新加载所有组以获取更新后的内容
+        await this.loadHostGroups();
+        
+        // 如果当前选中的是这个组，更新本地状态
+        if (this.selectedGroup && this.selectedGroup.id === groupId) {
+          this.selectedGroup = this.groups.find(g => g.id === groupId);
+          this.editingGroup = { ...this.selectedGroup };
+          this.remoteContentPreview = this.selectedGroup.content;
+        }
+        
+        // 如果组是启用状态，则应用到系统
+        if (this.selectedGroup && this.selectedGroup.enabled) {
+          await this.applyHosts();
+        }
+        
+        this.showMessage('Remote group content updated successfully', 'success');
+      } catch (error) {
+        this.showMessage(`Failed to refresh remote group: ${error}`, 'error')
+      }
     },
 
     async addGroup(newGroupData) {
@@ -211,6 +260,11 @@ export default {
         }
         this.isDirty = false
         this.showMessage('Group updated successfully', 'success')
+        
+        // 如果该组已启用，则自动应用Hosts
+        if (editingGroupData.enabled) {
+          await this.applyHosts();
+        }
       } catch (error) {
         this.showMessage(`Failed to update group: ${error}`, 'error')
       }
@@ -230,7 +284,11 @@ export default {
     async applyHosts() {
       try {
         await ApplyHosts()
-        this.showMessage('Hosts applied successfully', 'success')
+        
+        // 刷新系统hosts内容，如果当前显示的是系统hosts
+        if (this.selectedGroup && this.selectedGroup.id === 'system-host') {
+          await this.refreshSystemHost()
+        }
       } catch (error) {
         this.showMessage(`Failed to apply hosts: ${error}`, 'error')
       }
@@ -238,11 +296,30 @@ export default {
 
     async refreshRemote() {
       try {
+        // 记录刷新前启用的远程组
+        const previouslyEnabledGroups = this.groups.filter(g => g.enabled && g.isRemote);
+        
         await RefreshRemoteGroups()
         await this.loadHostGroups()
+        
+        // 检查是否有任何启用的组，如果有，则应用到系统
+        const hasEnabledGroups = this.groups.some(g => g.enabled);
+        if (hasEnabledGroups) {
+          await this.applyHosts();
+        }
+        
         this.showMessage('Remote groups refreshed', 'success')
       } catch (error) {
         this.showMessage(`Failed to refresh remote groups: ${error}`, 'error')
+      }
+    },
+    
+    async backupNow() {
+      try {
+        const result = await BackupAppAndSystemHosts();
+        this.showMessage(`Backup completed successfully: ${result}`, 'success');
+      } catch (error) {
+        this.showMessage(`Failed to perform backup: ${error}`, 'error');
       }
     },
 
@@ -307,6 +384,9 @@ export default {
         return
       }
 
+      // 保存原始的启用状态
+      const wasEnabled = this.selectedGroup.enabled;
+      
       this.isRefreshingRemote = true
       try {
         // 通过后端API刷新远程组内容，这会更新数据库中的内容
@@ -321,6 +401,11 @@ export default {
           this.selectedGroup = updatedGroup;
           this.editingGroup = { ...updatedGroup };
           this.remoteContentPreview = updatedGroup.content;
+        }
+        
+        // 如果组是启用状态，则应用到系统
+        if (updatedGroup && updatedGroup.enabled) {
+          await this.applyHosts();
         }
         
         this.showMessage('Remote content updated successfully', 'success')
@@ -360,6 +445,11 @@ export default {
         }
         
         this.showMessage('Remote content fetched and saved successfully', 'success');
+        
+        // 如果当前选中的组已启用，则自动应用Hosts
+        if (this.selectedGroup && this.selectedGroup.enabled) {
+          await this.applyHosts();
+        }
       } catch (error) {
         this.showMessage(`Failed to fetch remote content: ${error}`, 'error');
       } finally {

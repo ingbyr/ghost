@@ -55,12 +55,6 @@ func (hm *HostManager) ReadSystemHosts() (string, error) {
 
 // WriteSystemHosts 写入系统hosts文件内容
 func (hm *HostManager) WriteSystemHosts(content string) error {
-	// 创建备份
-	backupPath := hm.createBackup()
-	if backupPath != "" {
-		fmt.Printf("Created backup: %s\n", backupPath)
-	}
-
 	// 写入新内容
 	err := os.WriteFile(hm.SystemHostPath, []byte(content), 0644)
 	if err != nil {
@@ -92,8 +86,8 @@ func (hm *HostManager) getAppDataDir() (string, error) {
 	return backupPath, nil
 }
 
-// createBackup 创建系统hosts文件备份
-func (hm *HostManager) createBackup() string {
+// CreateBackup 创建系统hosts文件备份
+func (hm *HostManager) CreateBackup() string {
 	// 获取应用数据目录用于备份
 	backupDir, err := hm.getAppDataDir()
 	if err != nil {
@@ -156,13 +150,17 @@ func (hm *HostManager) ApplyHostGroups(hostGroups []map[string]interface{}) erro
 		}
 
 		content, ok := group["content"].(string)
-		if !ok || content == "" {
+		if !ok {
 			continue
 		}
 
 		ghostContent.WriteString(fmt.Sprintf("# Start of group: %s\n", name))
-		ghostContent.WriteString(content)
-		ghostContent.WriteString(fmt.Sprintf("\n# End of group: %s\n\n", name))
+		if content != "" {
+			ghostContent.WriteString(content)
+			ghostContent.WriteString(fmt.Sprintf("\n# End of group: %s\n\n", name))
+		} else {
+			ghostContent.WriteString(fmt.Sprintf("# End of group: %s\n\n", name))
+		}
 	}
 
 	ghostContent.WriteString(GhostSectionEnd)

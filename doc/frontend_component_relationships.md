@@ -101,7 +101,6 @@ SystemHostPreview.vue
 └── refresh-system-host → MainPanel.vue
 
 ActionBar.vue
-├── apply-hosts → App.vue
 ├── refresh-remote → App.vue
 └── refresh-list → App.vue
 

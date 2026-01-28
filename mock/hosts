@@ -13,3 +13,5 @@
 10.0.0.50       db.internal
 203.0.113.10    staging.server.com
 198.51.100.20   backup.service.org
+127.0.0.1 foobar
+

@@ -34,6 +34,21 @@ func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 }
 
+// shutdown is called when the app is closing
+func (a *App) shutdown(ctx context.Context) {
+	// 创建系统hosts文件的备份
+	err := a.hostApp.BackupConfig()
+	if err != nil {
+		fmt.Printf("Warning: failed to backup config: %v\n", err)
+	}
+
+	// 创建系统hosts文件的备份
+	backupPath := a.hostApp.HostManager().CreateBackup()
+	if backupPath != "" {
+		fmt.Printf("Created hosts file backup on exit: %s\n", backupPath)
+	}
+}
+
 // GetHostGroups 获取所有Host分组
 func (a *App) GetHostGroups() ([]models.HostGroup, error) {
 	return a.hostApp.GetHostGroups()
@@ -107,6 +122,34 @@ func (a *App) GetRemoteContent(url string) (string, error) {
 // RefreshRemoteGroup 刷新指定的远程Host分组
 func (a *App) RefreshRemoteGroup(id string) error {
 	return a.hostApp.RefreshRemoteGroup(id)
+}
+
+// BackupConfig 创建配置备份
+func (a *App) BackupConfig() error {
+	return a.hostApp.BackupConfig()
+}
+
+// BackupData 创建数据文件备份
+func (a *App) BackupData() error {
+	return a.hostApp.BackupData()
+}
+
+// CreateSystemHostsBackup 创建系统hosts文件备份
+func (a *App) CreateSystemHostsBackup() (string, error) {
+	backupPath := a.hostApp.HostManager().CreateBackup()
+	if backupPath == "" {
+		return "", fmt.Errorf("failed to create system hosts backup")
+	}
+	return backupPath, nil
+}
+
+// BackupAppAndSystemHosts 同时备份应用数据文件和系统hosts文件
+func (a *App) BackupAppAndSystemHosts() (string, error) {
+	result, err := a.hostApp.BackupAppAndSystemHosts()
+	if err != nil {
+		return "", err
+	}
+	return result, nil
 }
 
 // Greet returns a greeting for the given name

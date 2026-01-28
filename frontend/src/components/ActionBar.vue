@@ -1,13 +1,10 @@
 <template>
   <div class="top-bar">
-    <button class="btn btn-primary" @click="applyHosts" title="Apply all enabled host groups to system">
-      Apply Hosts to System
-    </button>
     <button class="btn btn-secondary" @click="refreshRemote" title="Refresh all remote host groups">
       Refresh Remote Groups
     </button>
-    <button class="btn btn-info" @click="refreshList" title="Refresh the list">
-      Refresh
+    <button class="btn btn-info" @click="backupNow" title="Create manual backup">
+      Backup Now
     </button>
   </div>
 </template>
@@ -15,16 +12,16 @@
 <script>
 export default {
   name: 'ActionBar',
-  emits: ['apply-hosts', 'refresh-remote', 'refresh-list'],
+  emits: ['refresh-remote', 'refresh-list', 'backup-now'],
   methods: {
-    applyHosts() {
-      this.$emit('apply-hosts');
-    },
     refreshRemote() {
       this.$emit('refresh-remote');
     },
     refreshList() {
       this.$emit('refresh-list');
+    },
+    backupNow() {
+      this.$emit('backup-now');
     }
   }
 }

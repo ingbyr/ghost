@@ -41,6 +41,8 @@ frontend/
 - 编辑远程Host名称、描述、URL
 - 获取远程内容预览
 - 保存远程Host配置
+- "获取host内容"按钮用于手动更新远程内容
+- 当组启用时，内容显示为只读预览模式
 
 ### LocalHostEditor.vue
 **用途**: 编辑本地Host群组
@@ -48,6 +50,7 @@ frontend/
 - 编辑本地Host名称、描述
 - 编辑Host内容
 - 保存本地Host配置
+- 当组启用时，内容显示为只读预览模式
 
 ### SystemHostPreview.vue
 **用途**: 预览系统Host文件（只读）
@@ -59,8 +62,8 @@ frontend/
 ### ActionBar.vue
 **用途**: 提供主要操作按钮
 **主要功能**:
-- 应用Hosts到系统
 - 刷新远程群组
+- 备份数据
 - 刷新列表
 
 ### AddGroupModal.vue
@@ -88,7 +91,7 @@ components: {
 ```
 
 ### 修改现有组件
-```javascript
+``javascript
 // 示例：修改Sidebar.vue中的搜索功能
 // 1. 在Sidebar.vue中找到相关代码
 <input 
@@ -114,6 +117,13 @@ props: {
 
 // 子组件向父组件发送事件 (Events Up)
 this.$emit('update:search-query', newValue)
+```
+
+### 远程Host行为说明
+```
+1. 启用/禁用远程Host: 仅改变其启用状态，不会自动获取最新内容
+2. 更新远程内容: 点击"获取host内容"按钮手动获取最新内容
+3. 内容应用: 当远程Host启用且内容更新后，会自动应用到系统Hosts文件
 ```
 
 ## 调试技巧
@@ -192,3 +202,12 @@ npm outdated
 1. 检查响应式数据定义
 2. 验证key属性使用
 3. 确认computed/watch使用恰当
+
+### 启用组的只读模式
+```
+1. 当本地或远程Host组启用时，编辑器将内容区域设为只读状态（但仍显示在textarea中）
+2. 在只读模式下，不能编辑组的内容、名称或描述
+3. 浮动保存按钮将被隐藏
+4. 启用的组显示内容为只读，方便查看当前应用的内容
+5. 要编辑内容，需要先禁用该组，此时内容区域变为可编辑状态
+```

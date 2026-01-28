@@ -10,6 +10,22 @@ export function ApplyHosts() {
   return window['go']['main']['App']['ApplyHosts']();
 }
 
+export function BackupAppAndSystemHosts() {
+  return window['go']['main']['App']['BackupAppAndSystemHosts']();
+}
+
+export function BackupConfig() {
+  return window['go']['main']['App']['BackupConfig']();
+}
+
+export function BackupData() {
+  return window['go']['main']['App']['BackupData']();
+}
+
+export function CreateSystemHostsBackup() {
+  return window['go']['main']['App']['CreateSystemHostsBackup']();
+}
+
 export function DeleteHostGroup(arg1) {
   return window['go']['main']['App']['DeleteHostGroup'](arg1);
 }

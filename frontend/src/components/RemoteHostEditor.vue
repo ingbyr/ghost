@@ -118,7 +118,7 @@ export default {
       default: false
     }
   },
-  emits: ['save-group', 'cancel-edit', 'fetch-remote-content', 'mark-as-dirty'],
+  emits: ['save-group', 'cancel-edit', 'fetch-remote-content', 'mark-as-dirty', 'apply-hosts'],
   data() {
     return {
       localEditingGroup: { ...this.editingGroup }
@@ -140,12 +140,18 @@ export default {
   methods: {
     saveGroup() {
       this.$emit('save-group', this.localEditingGroup);
+      // 保存后如果组已启用则应用Hosts
+      if (this.localEditingGroup.enabled) {
+        this.$emit('apply-hosts');
+      }
     },
     cancelEdit() {
       this.$emit('cancel-edit');
     },
     fetchRemoteContent() {
       this.$emit('fetch-remote-content');
+      // 获取远程内容后需要应用Hosts，如果该组已启用
+      this.$emit('apply-hosts');
     },
     markAsDirty() {
       this.$emit('mark-as-dirty');

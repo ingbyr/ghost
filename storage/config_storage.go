@@ -139,6 +139,33 @@ func (cs *ConfigStorage) SaveHostManager(manager *models.HostManager) error {
 	return os.WriteFile(cs.dataPath, data, 0644)
 }
 
+// BackupData 创建数据文件备份
+func (cs *ConfigStorage) BackupData() error {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return err
+	}
+
+	backupPath := filepath.Join(homeDir, AppDataDir, BackupDir)
+	timestamp := time.Now().Format("20060102_150405")
+	backupFile := filepath.Join(backupPath, "data_"+timestamp+".json")
+
+	// 读取当前数据
+	data, err := os.ReadFile(cs.dataPath)
+	if err != nil {
+		return err
+	}
+
+	// 写入备份
+	err = os.WriteFile(backupFile, data, 0644)
+	if err != nil {
+		return err
+	}
+
+	// 清理旧备份
+	return cs.cleanupOldBackups()
+}
+
 // BackupConfig 创建配置备份
 func (cs *ConfigStorage) BackupConfig() error {
 	homeDir, err := os.UserHomeDir()

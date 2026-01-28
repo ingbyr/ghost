@@ -223,58 +223,29 @@ func (app *HostApp) ApplyHosts() error {
 		return fmt.Errorf("failed to load host manager: %w", err)
 	}
 
-	// 在应用之前刷新所有远程组
-	log.Println("Refreshing remote host groups before applying to system")
-	err = app.RefreshRemoteGroups()
-	if err != nil {
-		log.Printf("Warning: failed to refresh remote groups: %v", err)
-		// 即使刷新失败也要继续应用，因为可能有本地组仍需要应用
-	}
-	// 重新加载管理器以获取最新数据
-	manager, err = app.configStorage.LoadHostManager()
-	if err != nil {
-		return fmt.Errorf("failed to reload host manager: %w", err)
-	}
-
-	// 收集所有启用的组
-	var activeGroups []map[string]interface{}
+	// 构建hostGroups数据结构用于应用到系统
+	var hostGroups []map[string]interface{}
 	for _, group := range manager.Groups {
 		if group.Enabled {
+			hostGroup := map[string]interface{}{
+				"id":       group.ID,
+				"name":     group.Name,
+				"content":  group.Content,
+				"enabled":  group.Enabled,
+				"isRemote": group.IsRemote,
+			}
+			hostGroups = append(hostGroups, hostGroup)
 			log.Printf("Applying group: %s (Remote: %t, Enabled: %t)", group.Name, group.IsRemote, group.Enabled)
-			activeGroups = append(activeGroups, map[string]interface{}{
-				"id":      group.ID,
-				"name":    group.Name,
-				"content": group.Content,
-				"enabled": group.Enabled,
-			})
 		}
 	}
 
-	// 应用到系统hosts文件
-	err = app.hostManager.ApplyHostGroups(activeGroups)
+	// 使用HostManager的ApplyHostGroups方法，该方法会保留系统原有内容
+	err = app.hostManager.ApplyHostGroups(hostGroups)
 	if err != nil {
-		return fmt.Errorf("failed to apply host groups: %w", err)
+		return fmt.Errorf("failed to apply host groups to system: %w", err)
 	}
 
-	// 更新配置中的活跃组列表
-	config, err := app.configStorage.LoadConfig()
-	if err != nil {
-		return fmt.Errorf("failed to load config: %w", err)
-	}
-
-	activeIDs := make([]string, len(activeGroups))
-	for i, group := range activeGroups {
-		if id, ok := group["id"].(string); ok {
-			activeIDs[i] = id
-		}
-	}
-	config.ActiveGroups = activeIDs
-	config.UpdatedAt = time.Now()
-
-	err = app.configStorage.SaveConfig(config)
-	if err != nil {
-		return fmt.Errorf("failed to save config: %w", err)
-	}
+	log.Printf("Applied %d enabled host groups to system hosts file", len(hostGroups))
 
 	return nil
 }
@@ -410,6 +381,11 @@ func (app *HostApp) BackupConfig() error {
 	return app.configStorage.BackupConfig()
 }
 
+// BackupData 创建数据备份
+func (app *HostApp) BackupData() error {
+	return app.configStorage.BackupData()
+}
+
 // GetHostGroup 获取指定ID的Host分组
 func (app *HostApp) GetHostGroup(id string) (*models.HostGroup, error) {
 	manager, err := app.configStorage.LoadHostManager()
@@ -484,4 +460,26 @@ func (app *HostApp) requestAdminPrivileges() error {
 		return fmt.Errorf("unsupported platform: %s", runtime.GOOS)
 	}
 	return nil
+}
+
+// HostManager 返回HostManager实例
+func (app *HostApp) HostManager() *system.HostManager {
+	return app.hostManager
+}
+
+// BackupAppAndSystemHosts 同时备份应用数据文件和系统hosts文件
+func (app *HostApp) BackupAppAndSystemHosts() (string, error) {
+	// 创建系统hosts文件备份
+	hostsBackupPath := app.hostManager.CreateBackup()
+	if hostsBackupPath == "" {
+		return "", fmt.Errorf("failed to create system hosts backup")
+	}
+
+	// 创建应用数据备份（即data.json）
+	err := app.configStorage.BackupData()
+	if err != nil {
+		return hostsBackupPath, fmt.Errorf("created hosts backup at %s, but failed to create data backup: %w", hostsBackupPath, err)
+	}
+
+	return fmt.Sprintf("System hosts backed up to: %s, App data backed up to: data backup created", hostsBackupPath), nil
 }

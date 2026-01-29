@@ -23,7 +23,7 @@
       >
         <div class="tree-item-content">
           <div class="item-icon">
-            <span>⚙️</span>
+            <el-tag size="small" type="info">System</el-tag>
           </div>
           <div class="item-details">
             <div class="item-name">System Host File</div>
@@ -41,8 +41,8 @@
       >
         <div class="tree-item-content">
           <div class="item-icon">
-            <span v-if="group.isRemote">🌐</span>
-            <span v-else>📝</span>
+            <el-tag v-if="group.isRemote" size="small" type="primary">Remote</el-tag>
+            <el-tag v-else size="small" type="success">Local</el-tag>
           </div>
           <div class="item-details">
             <div class="item-name">{{ group.name }}</div>
@@ -59,13 +59,14 @@
                 <span class="switch-text">{{ group.enabled ? 'ON' : 'OFF' }}</span>
               </div>
             </div>
-            <button 
-              class="btn-icon" 
+            <el-button
+              type="danger"
+              size="small"
               @click.stop="$emit('delete-group', group.id)"
               title="Delete group"
             >
-              🗑️
-            </button>
+              Delete
+            </el-button>
           </div>
         </div>
       </div>
@@ -200,8 +201,9 @@ export default {
 }
 
 .item-icon {
-  font-size: 18px;
-  min-width: 24px;
+  min-width: 60px;
+  display: flex;
+  align-items: center;
 }
 
 .item-details {

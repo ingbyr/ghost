@@ -3,8 +3,6 @@ package application
 import (
 	"fmt"
 	"log"
-	"os/exec"
-	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -446,21 +444,7 @@ func (app *HostApp) RefreshRemoteGroup(id string) error {
 
 // requestAdminPrivileges 尝试以管理员权限重新启动应用
 func (app *HostApp) requestAdminPrivileges() error {
-	switch runtime.GOOS {
-	case "windows":
-		// 在Windows上尝试以管理员身份运行
-		cmd := exec.Command("powershell", "/C", "Start-Process", "cmd", "/C", "pause")
-		err := cmd.Run()
-		if err != nil {
-			return fmt.Errorf("could not elevate privileges: %w", err)
-		}
-	case "darwin", "linux":
-		// 在Unix系统上提示使用sudo
-		return fmt.Errorf("please run this application with sudo to modify hosts file")
-	default:
-		return fmt.Errorf("unsupported platform: %s", runtime.GOOS)
-	}
-	return nil
+	return app.hostManager.RequestElevatedPrivileges()
 }
 
 // HostManager 返回HostManager实例

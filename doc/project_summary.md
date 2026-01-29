@@ -28,6 +28,8 @@ Ghost是一个基于Go语言和Wails框架的跨平台Host文件切换GUI程序�
 - **Windows**: `C:\Windows\System32\drivers\etc\hosts`
 - **Unix/Linux/macOS**: `/etc/hosts`
 - **权限管理**: 需要管理员权限来修改系统Hosts文件
+  - **Windows**: 通过应用程序清单文件配置，实现永久性管理员权限，用户确认后整个会话期间都具有所需权限
+  - **Linux/macOS**: 通过图形化sudo工具请求临时权限，根据系统配置可能需要周期性重新认证
 
 ## UI界面功能
 - 左侧树形结构显示Host分组列表

@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"ghost/permissions"
 	"ghost/storage"
 )
 
@@ -214,6 +215,11 @@ func (hm *HostManager) removeGhostEntries(content string) (string, error) {
 	return strings.Join(result, "\n"), nil
 }
 
+// IsRunningAsAdmin 检查当前进程是否以管理员权限运行
+func (hm *HostManager) IsRunningAsAdmin() bool {
+	return permissions.IsAdmin()
+}
+
 // HasWritePermission 检查是否有写入系统hosts文件的权限
 func (hm *HostManager) HasWritePermission() bool {
 	// 尝试打开文件进行追加写入，以检查权限
@@ -223,6 +229,15 @@ func (hm *HostManager) HasWritePermission() bool {
 	}
 	file.Close()
 	return true
+}
+
+// RequestElevatedPrivileges 请求提升权限以修改系统hosts文件
+func (hm *HostManager) RequestElevatedPrivileges() error {
+	// 检查当前是否已有管理员权限
+	if permissions.IsAdmin() {
+		return nil
+	}
+	return permissions.RequestElevation()
 }
 
 // RequestAdminPrivileges 提示用户以管理员权限运行（在某些系统上）

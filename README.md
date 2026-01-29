@@ -44,6 +44,16 @@ Latest version introduces a brand new left-right panel interface design:
 - **Unix/Linux/macOS**: `/etc/hosts`
 - **Permissions**: Requires administrator privileges for system hosts file modification
 
+### Permission Management
+
+Ghost Host Manager handles permissions differently across platforms:
+
+- **Windows**: Uses application manifest to request permanent administrator privileges. Once approved via UAC, the application runs with elevated permissions throughout the session.
+- **Linux**: Utilizes graphical sudo tools (pkexec, gksudo, kdesudo) to request permissions when needed. Authentication may be required periodically based on system sudo timeout settings.
+- **macOS**: Uses AppleScript to request administrator privileges when needed. Authentication may be required periodically based on system sudo timeout settings.
+
+For detailed information about permission handling on each platform, please see our [Permissions Guide](./docs/permissions.md).
+
 ## Remote Host Behavior
 
 - **Enable/Disable**: Toggling a remote host group only enables/disables it without fetching fresh content. The system hosts file is updated to reflect the enabled/disabled state, but the remote content itself is not refreshed.
@@ -66,6 +76,14 @@ The application provides a clean, intuitive interface with:
 - **Action Bar** - Contains "Refresh Remote Groups" and "Backup Now" buttons
 - **Automatic Apply Behavior** - Hosts are automatically applied to the system when groups are toggled, saved, or refreshed (if the group is enabled)
 - **System Host Preview** - Shows current system hosts file content with refresh capability
+
+## Documentation
+
+For detailed information about using Ghost Host Manager, please see our documentation:
+
+- [Quick Start Guide](./docs/quick-start.md) - Installation and basic usage
+- [Permissions Guide](./docs/permissions.md) - Detailed explanation of permission handling on each platform
+- [Full Documentation Index](./docs/index.md) - Complete list of available documentation
 
 ## Development Setup
 

@@ -53,4 +53,4 @@ Ghost是一个基于Go语言和Wails框架的跨平台Host文件切换GUI程序�
 - Go语言 Wails框架
 - JSON文件存储
 - 前端技术使用Vue和ElementUI前端组件
-- 使用 Windows Git Bash终端进行调试
+- 使用 Windows PowerShell 命令格式调试

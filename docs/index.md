@@ -5,7 +5,7 @@
 ## 基础文档
 
 - [快速入门指南](./quick-start.md) - 安装、运行和基本操作指南
-- [项目总结](../doc/project_summary.md) - 项目功能和技术架构概述
+- [项目总结](./project_summary.md) - 项目功能和技术架构概述
 
 ## 权限管理
 
@@ -13,8 +13,8 @@
 
 ## 前端开发
 
-- [前端快速参考](../doc/frontend_quick_reference.md) - Vue.js 组件和前端开发参考
-- [前端组件关系图](../doc/frontend_component_relationships.md) - 组件架构和依赖关系
+- [前端快速参考](./frontend_quick_reference.md) - Vue.js 组件和前端开发参考
+- [前端组件关系图](./frontend_component_relationships.md) - 组件架构和依赖关系
 
 ## 其他
 

@@ -2,9 +2,11 @@ package storage
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 	"sync"
 	"time"
 
@@ -148,8 +150,8 @@ func (cs *ConfigStorage) BackupData() error {
 	}
 
 	backupPath := filepath.Join(homeDir, AppDataDir, BackupDir)
-	timestamp := time.Now().Format("20060102_150405")
-	backupFile := filepath.Join(backupPath, "data_"+timestamp+".json")
+	timestamp := time.Now().Format("2006-01-02_15-04-05")
+	backupFile := filepath.Join(backupPath, timestamp+".json")
 
 	// 读取当前数据
 	data, err := os.ReadFile(cs.dataPath)
@@ -192,6 +194,79 @@ func (cs *ConfigStorage) BackupConfig() error {
 
 	// 清理旧备份
 	return cs.cleanupOldBackups()
+}
+
+// ListDataBackups 列出所有数据备份文件
+func (cs *ConfigStorage) ListDataBackups() ([]string, error) {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return nil, err
+	}
+
+	backupPath := filepath.Join(homeDir, AppDataDir, BackupDir)
+	files, err := os.ReadDir(backupPath)
+	if err != nil {
+		return nil, err
+	}
+
+	var backups []string
+	for _, file := range files {
+		if !file.IsDir() && filepath.Ext(file.Name()) == ".json" && !strings.HasPrefix(file.Name(), "pre_restore_") {
+			backups = append(backups, file.Name())
+		}
+	}
+
+	return backups, nil
+}
+
+// RestoreData 从备份文件恢复数据
+func (cs *ConfigStorage) RestoreData(backupFileName string) error {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return err
+	}
+
+	backupPath := filepath.Join(homeDir, AppDataDir, BackupDir, backupFileName)
+
+	// 检查备份文件是否存在
+	if _, err := os.Stat(backupPath); os.IsNotExist(err) {
+		return fmt.Errorf("backup file not found: %s", backupFileName)
+	}
+
+	cs.mutex.Lock()
+	defer cs.mutex.Unlock()
+
+	// 先创建当前数据的备份（安全备份，计入总计限制）
+	timestamp := time.Now().Format("2006-01-02_15-04-05")
+	safetyBackup := filepath.Join(homeDir, AppDataDir, BackupDir, "pre_restore_"+timestamp+".json")
+
+	currentData, err := os.ReadFile(cs.dataPath)
+	if err == nil {
+		os.WriteFile(safetyBackup, currentData, 0644)
+	}
+
+	// 读取备份数据
+	backupData, err := os.ReadFile(backupPath)
+	if err != nil {
+		return fmt.Errorf("failed to read backup file: %w", err)
+	}
+
+	// 验证 JSON 格式
+	var manager models.HostManager
+	err = json.Unmarshal(backupData, &manager)
+	if err != nil {
+		return fmt.Errorf("invalid backup file format: %w", err)
+	}
+
+	// 写入到 data.json
+	err = os.WriteFile(cs.dataPath, backupData, 0644)
+	if err != nil {
+		return fmt.Errorf("failed to restore data: %w", err)
+	}
+
+	// 注意：不在这里调用 cleanupOldBackups，避免与 LoadConfig 的死锁
+	// 安全备份由下次自动备份时清理
+	return nil
 }
 
 // cleanupOldBackups 清理旧备份文件

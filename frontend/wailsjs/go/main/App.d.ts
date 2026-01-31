@@ -30,9 +30,13 @@ export function GetSystemHostsContent():Promise<string>;
 
 export function Greet(arg1:string):Promise<string>;
 
+export function ListDataBackups():Promise<Array<string>>;
+
 export function RefreshRemoteGroup(arg1:string):Promise<void>;
 
 export function RefreshRemoteGroups():Promise<void>;
+
+export function RestoreData(arg1:string):Promise<void>;
 
 export function ToggleHostGroup(arg1:string,arg2:boolean):Promise<void>;
 

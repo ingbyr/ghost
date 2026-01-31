@@ -152,6 +152,16 @@ func (a *App) BackupAppAndSystemHosts() (string, error) {
 	return result, nil
 }
 
+// ListDataBackups 列出所有数据备份文件
+func (a *App) ListDataBackups() ([]string, error) {
+	return a.hostApp.ListDataBackups()
+}
+
+// RestoreData 从备份文件恢复数据
+func (a *App) RestoreData(backupFileName string) error {
+	return a.hostApp.RestoreData(backupFileName)
+}
+
 // Greet returns a greeting for the given name
 func (a *App) Greet(name string) string {
 	return fmt.Sprintf("Hello %s, It's show time!", name)

@@ -6,13 +6,16 @@
     <button class="btn btn-info" @click="backupNow" title="Create manual backup">
       Backup Now
     </button>
+    <button class="btn btn-warning" @click="restoreBackup" title="Restore from backup">
+      Restore Backup
+    </button>
   </div>
 </template>
 
 <script>
 export default {
   name: 'ActionBar',
-  emits: ['refresh-remote', 'refresh-list', 'backup-now'],
+  emits: ['refresh-remote', 'refresh-list', 'backup-now', 'restore-backup'],
   methods: {
     refreshRemote() {
       this.$emit('refresh-remote');
@@ -22,6 +25,9 @@ export default {
     },
     backupNow() {
       this.$emit('backup-now');
+    },
+    restoreBackup() {
+      this.$emit('restore-backup');
     }
   }
 }
@@ -78,5 +84,14 @@ export default {
 
 .btn-info:hover {
   background-color: #117a8b;
+}
+
+.btn-warning {
+  background-color: #ffc107;
+  color: #212529;
+}
+
+.btn-warning:hover {
+  background-color: #e0a800;
 }
 </style>

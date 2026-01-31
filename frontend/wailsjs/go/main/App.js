@@ -58,12 +58,20 @@ export function Greet(arg1) {
   return window['go']['main']['App']['Greet'](arg1);
 }
 
+export function ListDataBackups() {
+  return window['go']['main']['App']['ListDataBackups']();
+}
+
 export function RefreshRemoteGroup(arg1) {
   return window['go']['main']['App']['RefreshRemoteGroup'](arg1);
 }
 
 export function RefreshRemoteGroups() {
   return window['go']['main']['App']['RefreshRemoteGroups']();
+}
+
+export function RestoreData(arg1) {
+  return window['go']['main']['App']['RestoreData'](arg1);
 }
 
 export function ToggleHostGroup(arg1, arg2) {

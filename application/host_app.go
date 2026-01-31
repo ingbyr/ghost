@@ -468,3 +468,13 @@ func (app *HostApp) BackupAppAndSystemHosts() (string, error) {
 
 	return fmt.Sprintf("System hosts backed up to: %s, App data backed up to: data backup created", hostsBackupPath), nil
 }
+
+// ListDataBackups 列出所有数据备份文件
+func (app *HostApp) ListDataBackups() ([]string, error) {
+	return app.configStorage.ListDataBackups()
+}
+
+// RestoreData 从备份文件恢复数据
+func (app *HostApp) RestoreData(backupFileName string) error {
+	return app.configStorage.RestoreData(backupFileName)
+}

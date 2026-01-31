@@ -33,6 +33,7 @@
       @refresh-remote="refreshRemote"
       @refresh-list="loadHostGroups"
       @backup-now="backupNow"
+      @restore-backup="restoreBackup"
     />
     
     <AddGroupModal
@@ -65,7 +66,9 @@ import {
   RefreshRemoteGroup,
   BackupConfig,
   CreateSystemHostsBackup,
-  BackupAppAndSystemHosts
+  BackupAppAndSystemHosts,
+  ListDataBackups,
+  RestoreData
 } from '../wailsjs/go/main/App'
 
 import Sidebar from './components/Sidebar.vue';
@@ -113,7 +116,9 @@ export default {
   methods: {
     async loadHostGroups() {
       try {
+        console.log('Loading host groups...');
         this.groups = await GetHostGroups()
+        console.log('Host groups loaded:', this.groups.length, 'groups');
         if (this.selectedGroup) {
           // 如果当前选中的是系统hosts文件，保持选择不变
           if (this.selectedGroup.id === 'system-host') {
@@ -159,27 +164,20 @@ export default {
       }
     },
 
-    toggleGroupStatus(group) {
+    async toggleGroupStatus(group) {
       const newStatus = !group.enabled
-      ToggleHostGroup(group.id, newStatus)
-        .then(() => {
-          group.enabled = newStatus
-          this.showMessage(`Group ${newStatus ? 'enabled' : 'disabled'}`, 'success')
-          // 如果正在编辑此组，也更新编辑副本
-          if (this.selectedGroup && this.selectedGroup.id === group.id) {
-            this.editingGroup.enabled = newStatus
-          }
-          
-          // 重新加载组数据以确保UI状态一致
-          this.loadHostGroups();
-          
-          // 启用或禁用组后，应用所有启用的Hosts
-          // 注意：启用远程组时不再自动更新远程内容，只在用户主动点击按钮时更新
-          this.applyHosts();
-        })
-        .catch(error => {
-          this.showMessage(`Failed to toggle group: ${error}`, 'error')
-        })
+      try {
+        await ToggleHostGroup(group.id, newStatus)
+        this.showMessage(`Group ${newStatus ? 'enabled' : 'disabled'}`, 'success')
+        
+        // 重新加载组数据以确保UI状态一致
+        await this.loadHostGroups()
+        
+        // 启用或禁用组后，应用所有启用的Hosts
+        await this.applyHosts()
+      } catch (error) {
+        this.showMessage(`Failed to toggle group: ${error}`, 'error')
+      }
     },
     
     async refreshSpecificRemoteGroup(groupId) {
@@ -320,6 +318,80 @@ export default {
         this.showMessage(`Backup completed successfully: ${result}`, 'success');
       } catch (error) {
         this.showMessage(`Failed to perform backup: ${error}`, 'error');
+      }
+    },
+
+    async restoreBackup() {
+      try {
+        // 获取备份列表
+        const backups = await ListDataBackups();
+        if (backups.length === 0) {
+          this.showMessage('No backups available', 'error');
+          return;
+        }
+
+        // 格式化备份列表供用户选择
+        const backupOptions = backups.map((backup, index) => {
+          return `${index + 1}. ${backup}`;
+        }).join('\n');
+
+        // 显示选择对话框
+        const selectedIndex = prompt(
+          `Select a backup to restore (1-${backups.length}):\n\n${backupOptions}\n\nWarning: This will overwrite current data!`
+        );
+
+        if (selectedIndex === null) {
+          return; // 用户取消
+        }
+
+        const index = parseInt(selectedIndex) - 1;
+        if (isNaN(index) || index < 0 || index >= backups.length) {
+          this.showMessage('Invalid selection', 'error');
+          return;
+        }
+
+        const selectedBackup = backups[index];
+        console.log('Selected backup:', selectedBackup);
+
+        // 确认恢复
+        if (!confirm(`Are you sure you want to restore from ${selectedBackup}?\n\nThis will overwrite your current data!`)) {
+          console.log('User cancelled restore');
+          return;
+        }
+
+        console.log('Starting restore...');
+        // 执行恢复
+        await RestoreData(selectedBackup);
+        console.log('RestoreData completed');
+        
+        // 重置选中状态，避免状态混乱
+        this.selectedGroup = null;
+        this.editingGroup = {};
+        this.isDirty = false;
+        
+        // 清空现有分组，强制 Vue 重新渲染
+        this.groups = [];
+        await this.$nextTick();
+        
+        // 刷新整个列表以显示恢复后的分组和启用状态
+        await this.loadHostGroups();
+        
+        // 等待 Vue 更新 DOM
+        await this.$nextTick();
+        
+        // 调试：输出加载的分组启用状态
+        console.log('Loaded groups after restore:', this.groups.map(g => ({ id: g.id, name: g.name, enabled: g.enabled })));
+        
+        // 清空 Ghost 管理的系统 host 部分，应用当前启用的 host 分组
+        await this.applyHosts();
+        
+        // 刷新系统 hosts 显示（因为 applyHosts 修改了系统 hosts）
+        await this.refreshSystemHost();
+
+        const enabledCount = this.groups.filter(g => g.enabled).length;
+        this.showMessage(`Restored ${this.groups.length} groups (${enabledCount} enabled) from ${selectedBackup}`, 'success');
+      } catch (error) {
+        this.showMessage(`Failed to restore backup: ${error}`, 'error');
       }
     },
 

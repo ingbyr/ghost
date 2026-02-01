@@ -6,7 +6,6 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
-	"strings"
 	"sync"
 	"time"
 
@@ -209,11 +208,27 @@ func (cs *ConfigStorage) ListDataBackups() ([]string, error) {
 		return nil, err
 	}
 
-	var backups []string
+	// 获取所有备份文件信息
+	var backupFiles []os.FileInfo
 	for _, file := range files {
-		if !file.IsDir() && filepath.Ext(file.Name()) == ".json" && !strings.HasPrefix(file.Name(), "pre_restore_") {
-			backups = append(backups, file.Name())
+		if !file.IsDir() && filepath.Ext(file.Name()) == ".json" {
+			info, err := file.Info()
+			if err != nil {
+				continue
+			}
+			backupFiles = append(backupFiles, info)
 		}
+	}
+
+	// 按修改时间排序（最新的在前）
+	sort.Slice(backupFiles, func(i, j int) bool {
+		return backupFiles[i].ModTime().After(backupFiles[j].ModTime())
+	})
+
+	// 提取文件名
+	var backups []string
+	for _, fileInfo := range backupFiles {
+		backups = append(backups, fileInfo.Name())
 	}
 
 	return backups, nil
@@ -236,15 +251,6 @@ func (cs *ConfigStorage) RestoreData(backupFileName string) error {
 	cs.mutex.Lock()
 	defer cs.mutex.Unlock()
 
-	// 先创建当前数据的备份（安全备份，计入总计限制）
-	timestamp := time.Now().Format("2006-01-02_15-04-05")
-	safetyBackup := filepath.Join(homeDir, AppDataDir, BackupDir, "pre_restore_"+timestamp+".json")
-
-	currentData, err := os.ReadFile(cs.dataPath)
-	if err == nil {
-		os.WriteFile(safetyBackup, currentData, 0644)
-	}
-
 	// 读取备份数据
 	backupData, err := os.ReadFile(backupPath)
 	if err != nil {
@@ -264,8 +270,6 @@ func (cs *ConfigStorage) RestoreData(backupFileName string) error {
 		return fmt.Errorf("failed to restore data: %w", err)
 	}
 
-	// 注意：不在这里调用 cleanupOldBackups，避免与 LoadConfig 的死锁
-	// 安全备份由下次自动备份时清理
 	return nil
 }
 
@@ -297,9 +301,9 @@ func (cs *ConfigStorage) IsBackupDirEmpty() (bool, error) {
 		return false, err
 	}
 
-	// 检查是否有非临时文件（忽略pre_restore_开头的临时备份）
+	// 检查是否有任何文件
 	for _, file := range files {
-		if !file.IsDir() && !strings.HasPrefix(file.Name(), "pre_restore_") {
+		if !file.IsDir() {
 			return false, nil
 		}
 	}

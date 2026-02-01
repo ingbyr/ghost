@@ -371,85 +371,109 @@ export default {
           return;
         }
 
-        // 格式化备份列表供用户选择
-        const backupOptions = backups.map((backup, index) => {
-          return `${index + 1}. ${backup}`;
-        }).join('\n');
-
-        // 显示选择对话框 - 使用 Element Plus 的 MessageBox
-        // 首先让用户选择备份
-        const backupSelections = backups.map((backup, index) => ({
-          value: index,
-          label: backup
-        }));
-
-        // 创建一个自定义的输入框对话框
-        const { value: selectedValue } = await ElMessageBox.prompt(
-          'Select a backup to restore (Enter the number)',
-          'Restore Backup',
-          {
-            inputValue: '1',
-            inputPlaceholder: 'Enter number 1-' + backups.length,
-            confirmButtonText: 'Restore',
-            cancelButtonText: 'Cancel',
-            inputPattern: /^\d+$/,
-            inputErrorMessage: 'Please enter a valid number',
-            draggable: true
+        // 构建备份列表的HTML字符串
+        let backupListHtml = `<div style="max-height: 400px; overflow-y: auto;">
+          <p style="margin-bottom: 15px;">请选择要恢复的备份文件：</p>`;
+        
+        backups.forEach((backup, index) => {
+          backupListHtml += `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin: 8px 0; padding: 12px; border: 1px solid #dcdfe6; border-radius: 4px; background-color: #fafafa;">
+              <span style="flex: 1; word-break: break-all; margin-right: 10px; font-size: 14px;">${backup}</span>
+              <button id="restore-btn-${index}" style="padding: 6px 12px; background-color: #409eff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;">恢复</button>
+            </div>`;
+        });
+        
+        backupListHtml += '</div>';
+        
+        // 创建临时div来包含HTML内容
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = backupListHtml;
+        
+        // 显示包含备份列表的对话框
+        const msgBox = ElMessageBox({
+          title: 'Restore Backup',
+          dangerouslyUseHTMLString: true,
+          message: tempDiv.innerHTML,
+          showCancelButton: false,
+          showConfirmButton: true,
+          confirmButtonText: 'Close',
+          closeOnClickModal: false,
+          closeOnPressEscape: true,
+          customStyle: { 
+            width: '600px',
+            maxHeight: '500px'
           }
-        );
+        });
+        
+        // 等待对话框显示后再绑定事件
+        setTimeout(() => {
+          backups.forEach((backup, index) => {
+            const button = document.getElementById(`restore-btn-${index}`);
+            if (button) {
+              const handleClick = async () => {
+                try {
+                  // 关闭当前对话框
+                  ElMessageBox.close();
+                  
+                  // 确认恢复操作
+                  await ElMessageBox.confirm(
+                    `Are you sure you want to restore from ${backup}?\n\nThis will overwrite your current data!`,
+                    'Confirm Restore',
+                    {
+                      confirmButtonText: 'Restore',
+                      cancelButtonText: 'Cancel',
+                      type: 'warning',
+                      draggable: true
+                    }
+                  );
 
-        const selectedIndex = parseInt(selectedValue) - 1;
-        if (isNaN(selectedIndex) || selectedIndex < 0 || selectedIndex >= backups.length) {
-          this.showMessage('Invalid selection', 'error');
-          return;
-        }
+                  console.log('Starting restore...');
+                  // 执行恢复
+                  await RestoreData(backup);
+                  console.log('RestoreData completed');
+                  
+                  // 重置选中状态，避免状态混乱
+                  this.selectedGroup = null;
+                  this.editingGroup = {};
+                  this.isDirty = false;
+                  
+                  // 清空现有分组，强制 Vue 重新渲染
+                  this.groups = [];
+                  await this.$nextTick();
+                  
+                  // 刷新整个列表以显示恢复后的分组和启用状态
+                  await this.loadHostGroups();
+                  
+                  // 等待 Vue 更新 DOM
+                  await this.$nextTick();
+                  
+                  // 调试：输出加载的分组启用状态
+                  console.log('Loaded groups after restore:', this.groups.map(g => ({ id: g.id, name: g.name, enabled: g.enabled })));
+                  
+                  // 清空 Ghost 管理的系统 host 部分，应用当前启用的 host 分组
+                  await this.applyHosts();
+                  
+                  // 刷新系统 hosts 显示（因为 applyHosts 修改了系统 hosts）
+                  await this.refreshSystemHost();
 
-        const selectedBackup = backups[selectedIndex];
-        console.log('Selected backup:', selectedBackup);
+                  const enabledCount = this.groups.filter(g => g.enabled).length;
+                  this.showMessage(`Restored ${this.groups.length} groups (${enabledCount} enabled) from ${backup}`, 'success');
+                } catch (error) {
+                  if (error !== 'cancel' && error?.type !== 'cancel') {
+                    this.showMessage(`Failed to restore backup: ${error}`, 'error');
+                  }
+                  // 重新显示备份列表
+                  setTimeout(() => {
+                    this.restoreBackup();
+                  }, 100);
+                }
+              };
+              
+              button.addEventListener('click', handleClick);
+            }
+          });
+        }, 100);
 
-        // 确认恢复 - 使用 Element Plus 的 MessageBox
-        await ElMessageBox.confirm(
-          `Are you sure you want to restore from ${selectedBackup}?\n\nThis will overwrite your current data!`,
-          'Confirm Restore',
-          {
-            confirmButtonText: 'Restore',
-            cancelButtonText: 'Cancel',
-            type: 'warning',
-            draggable: true
-          }
-        );
-
-        console.log('Starting restore...');
-        // 执行恢复
-        await RestoreData(selectedBackup);
-        console.log('RestoreData completed');
-        
-        // 重置选中状态，避免状态混乱
-        this.selectedGroup = null;
-        this.editingGroup = {};
-        this.isDirty = false;
-        
-        // 清空现有分组，强制 Vue 重新渲染
-        this.groups = [];
-        await this.$nextTick();
-        
-        // 刷新整个列表以显示恢复后的分组和启用状态
-        await this.loadHostGroups();
-        
-        // 等待 Vue 更新 DOM
-        await this.$nextTick();
-        
-        // 调试：输出加载的分组启用状态
-        console.log('Loaded groups after restore:', this.groups.map(g => ({ id: g.id, name: g.name, enabled: g.enabled })));
-        
-        // 清空 Ghost 管理的系统 host 部分，应用当前启用的 host 分组
-        await this.applyHosts();
-        
-        // 刷新系统 hosts 显示（因为 applyHosts 修改了系统 hosts）
-        await this.refreshSystemHost();
-
-        const enabledCount = this.groups.filter(g => g.enabled).length;
-        this.showMessage(`Restored ${this.groups.length} groups (${enabledCount} enabled) from ${selectedBackup}`, 'success');
       } catch (error) {
         if (error !== 'cancel' && error?.type !== 'cancel') {
           this.showMessage(`Failed to restore backup: ${error}`, 'error');

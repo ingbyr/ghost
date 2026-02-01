@@ -74,6 +74,8 @@ import {
   HasRawHostsBackup
 } from '../wailsjs/go/main/App'
 
+import { ElMessageBox, ElNotification } from 'element-plus';
+
 import Sidebar from './components/Sidebar.vue';
 import MainPanel from './components/MainPanel.vue';
 import ActionBar from './components/ActionBar.vue';
@@ -142,7 +144,6 @@ export default {
             }
           }
         }
-        this.showMessage('Groups loaded successfully', 'info')
       } catch (error) {
         this.showMessage(`Failed to load host groups: ${error}`, 'error')
       }
@@ -150,20 +151,44 @@ export default {
 
     selectGroup(group) {
       if (this.isDirty) {
-        if (!confirm('You have unsaved changes. Are you sure you want to switch groups?')) {
-          return
-        }
-      }
-      this.selectedGroup = group
-      this.editingGroup = { ...group }
-      this.isDirty = false
-      
-      // 如果是远程组，将组内容设置为预览内容
-      if (group.isRemote) {
-        this.remoteContentPreview = group.content || '';
+        // 使用 Element Plus 的 MessageBox 替换 confirm
+        ElMessageBox.confirm(
+          'You have unsaved changes. Are you sure you want to switch groups?',
+          'Confirmation',
+          {
+            confirmButtonText: 'OK',
+            cancelButtonText: 'Cancel',
+            type: 'warning',
+            draggable: true
+          }
+        ).then(() => {
+          // 用户点击了确认
+          this.selectedGroup = group
+          this.editingGroup = { ...group }
+          this.isDirty = false
+          
+          // 如果是远程组，将组内容设置为预览内容
+          if (group.isRemote) {
+            this.remoteContentPreview = group.content || '';
+          } else {
+            // 如果是非远程组，清空预览内容
+            this.remoteContentPreview = '';
+          }
+        }).catch(() => {
+          // 用户点击了取消，什么都不做
+        });
       } else {
-        // 如果是非远程组，清空预览内容
-        this.remoteContentPreview = '';
+        this.selectedGroup = group
+        this.editingGroup = { ...group }
+        this.isDirty = false
+        
+        // 如果是远程组，将组内容设置为预览内容
+        if (group.isRemote) {
+          this.remoteContentPreview = group.content || '';
+        } else {
+          // 如果是非远程组，清空预览内容
+          this.remoteContentPreview = '';
+        }
       }
     },
 
@@ -171,7 +196,6 @@ export default {
       const newStatus = !group.enabled
       try {
         await ToggleHostGroup(group.id, newStatus)
-        this.showMessage(`Group ${newStatus ? 'enabled' : 'disabled'}`, 'success')
         
         // 重新加载组数据以确保UI状态一致
         await this.loadHostGroups()
@@ -234,17 +258,31 @@ export default {
     },
 
     async deleteGroup(groupId) {
-      if (confirm('Are you sure you want to delete this group?')) {
-        try {
-          await DeleteHostGroup(groupId)
-          await this.loadHostGroups()
-          if (this.selectedGroup && this.selectedGroup.id === groupId) {
-            this.selectedGroup = null
-            this.editingGroup = {}
-            this.isDirty = false
+      // 使用 Element Plus 的 MessageBox 替换 confirm
+      try {
+        await ElMessageBox.confirm(
+          'Are you sure you want to delete this group?',
+          'Confirm Delete',
+          {
+            confirmButtonText: 'Delete',
+            cancelButtonText: 'Cancel',
+            type: 'warning',
+            draggable: true
           }
-          this.showMessage('Group deleted successfully', 'success')
-        } catch (error) {
+        );
+        
+        // 用户点击了确认
+        await DeleteHostGroup(groupId)
+        await this.loadHostGroups()
+        if (this.selectedGroup && this.selectedGroup.id === groupId) {
+          this.selectedGroup = null
+          this.editingGroup = {}
+          this.remoteContentPreview = ''
+        }
+        this.showMessage('Group deleted successfully', 'success')
+      } catch (error) {
+        // 用户点击了取消或关闭对话框
+        if (error !== 'cancel') {
           this.showMessage(`Failed to delete group: ${error}`, 'error')
         }
       }
@@ -338,33 +376,48 @@ export default {
           return `${index + 1}. ${backup}`;
         }).join('\n');
 
-        // 显示选择对话框
-        const selectedIndex = prompt(
-          `Select a backup to restore (1-${backups.length}):
+        // 显示选择对话框 - 使用 Element Plus 的 MessageBox
+        // 首先让用户选择备份
+        const backupSelections = backups.map((backup, index) => ({
+          value: index,
+          label: backup
+        }));
 
-${backupOptions}
-
-Warning: This will overwrite current data!`
+        // 创建一个自定义的输入框对话框
+        const { value: selectedValue } = await ElMessageBox.prompt(
+          'Select a backup to restore (Enter the number)',
+          'Restore Backup',
+          {
+            inputValue: '1',
+            inputPlaceholder: 'Enter number 1-' + backups.length,
+            confirmButtonText: 'Restore',
+            cancelButtonText: 'Cancel',
+            inputPattern: /^\d+$/,
+            inputErrorMessage: 'Please enter a valid number',
+            draggable: true
+          }
         );
 
-        if (selectedIndex === null) {
-          return; // 用户取消
-        }
-
-        const index = parseInt(selectedIndex) - 1;
-        if (isNaN(index) || index < 0 || index >= backups.length) {
+        const selectedIndex = parseInt(selectedValue) - 1;
+        if (isNaN(selectedIndex) || selectedIndex < 0 || selectedIndex >= backups.length) {
           this.showMessage('Invalid selection', 'error');
           return;
         }
 
-        const selectedBackup = backups[index];
+        const selectedBackup = backups[selectedIndex];
         console.log('Selected backup:', selectedBackup);
 
-        // 确认恢复
-        if (!confirm(`Are you sure you want to restore from ${selectedBackup}?\n\nThis will overwrite your current data!`)) {
-          console.log('User cancelled restore');
-          return;
-        }
+        // 确认恢复 - 使用 Element Plus 的 MessageBox
+        await ElMessageBox.confirm(
+          `Are you sure you want to restore from ${selectedBackup}?\n\nThis will overwrite your current data!`,
+          'Confirm Restore',
+          {
+            confirmButtonText: 'Restore',
+            cancelButtonText: 'Cancel',
+            type: 'warning',
+            draggable: true
+          }
+        );
 
         console.log('Starting restore...');
         // 执行恢复
@@ -398,7 +451,9 @@ Warning: This will overwrite current data!`
         const enabledCount = this.groups.filter(g => g.enabled).length;
         this.showMessage(`Restored ${this.groups.length} groups (${enabledCount} enabled) from ${selectedBackup}`, 'success');
       } catch (error) {
-        this.showMessage(`Failed to restore backup: ${error}`, 'error');
+        if (error !== 'cancel' && error?.type !== 'cancel') {
+          this.showMessage(`Failed to restore backup: ${error}`, 'error');
+        }
       }
     },
 
@@ -457,11 +512,17 @@ Warning: This will overwrite current data!`
           return;
         }
         
-        // 确认恢复操作
-        const confirmed = confirm('Are you sure you want to restore the system hosts file to its original state using the backup? This will revert all changes made by Ghost Host Manager.');
-        if (!confirmed) {
-          return;
-        }
+        // 使用 Element Plus 的 MessageBox 替换 confirm
+        await ElMessageBox.confirm(
+          'Are you sure you want to restore the system hosts file to its original state using the backup? This will revert all changes made by Ghost Host Manager.',
+          'Confirm Restore System Hosts',
+          {
+            confirmButtonText: 'Restore',
+            cancelButtonText: 'Cancel',
+            type: 'warning',
+            draggable: true
+          }
+        );
         
         // 执行恢复操作
         await RestoreRawSystemHosts('raw_hosts_backup.txt');
@@ -471,8 +532,10 @@ Warning: This will overwrite current data!`
         
         this.showMessage('System hosts restored successfully! All host groups have been disabled.', 'success');
       } catch (error) {
-        console.error('Failed to restore system hosts:', error);
-        this.showMessage(`Failed to restore system hosts: ${error}`, 'error');
+        if (error !== 'cancel' && error?.type !== 'cancel') {
+          console.error('Failed to restore system hosts:', error);
+          this.showMessage(`Failed to restore system hosts: ${error}`, 'error');
+        }
       }
     },
     
@@ -506,7 +569,6 @@ Warning: This will overwrite current data!`
         if (this.selectedGroup && this.selectedGroup.id === 'system-host') {
           this.selectedGroup.content = this.systemHostContent
         }
-        this.showMessage('System host file refreshed', 'info')
       } catch (error) {
         this.showMessage(`Failed to refresh system host file: ${error}`, 'error')
       }
@@ -592,12 +654,44 @@ Warning: This will overwrite current data!`
     },
 
     showMessage(text, type) {
-      this.message = text
-      this.messageType = type
-      setTimeout(() => {
-        this.message = ''
-        this.messageType = ''
-      }, 3000)
+      // 使用 Element Plus 的 Notification 替换自定义消息
+      switch (type) {
+        case 'success':
+          ElNotification({
+            title: 'Success',
+            message: text,
+            type: 'success',
+            duration: 3000,
+            position: 'top-right'
+          });
+          break;
+        case 'error':
+          ElNotification({
+            title: 'Error',
+            message: text,
+            type: 'error',
+            duration: 5000,
+            position: 'top-right'
+          });
+          break;
+        case 'info':
+          ElNotification({
+            title: 'Info',
+            message: text,
+            type: 'info',
+            duration: 3000,
+            position: 'top-right'
+          });
+          break;
+        default:
+          ElNotification({
+            title: 'Message',
+            message: text,
+            type: 'info',
+            duration: 3000,
+            position: 'top-right'
+          });
+      }
     },
 
     onSearchChanged(searchQuery) {

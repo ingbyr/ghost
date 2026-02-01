@@ -1,20 +1,26 @@
 <template>
   <div class="top-bar">
-    <button class="btn btn-secondary" @click="refreshRemote" title="Refresh all remote host groups">
-      Refresh Remote Groups
+    <button class="btn btn-secondary" @click="refreshRemote" :title="t('components.actionBar.refreshRemoteGroupsTooltip')">
+      {{ t('components.actionBar.refreshRemoteGroups') }}
     </button>
-    <button class="btn btn-info" @click="backupNow" title="Create manual backup">
-      Backup Now
+    <button class="btn btn-info" @click="backupNow" :title="t('components.actionBar.backupNowTooltip')">
+      {{ t('components.actionBar.backupNow') }}
     </button>
-    <button class="btn btn-warning" @click="restoreBackup" title="Restore from backup">
-      Restore Backup
+    <button class="btn btn-warning" @click="restoreBackup" :title="t('components.actionBar.restoreBackupTooltip')">
+      {{ t('components.actionBar.restoreBackup') }}
     </button>
   </div>
 </template>
 
 <script>
+import { useI18n } from 'vue-i18n';
+
 export default {
   name: 'ActionBar',
+  setup() {
+    const { t } = useI18n();
+    return { t };
+  },
   emits: ['refresh-remote', 'refresh-list', 'backup-now', 'restore-backup'],
   methods: {
     refreshRemote() {

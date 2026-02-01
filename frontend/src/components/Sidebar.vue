@@ -1,7 +1,7 @@
 <template>
   <div class="sidebar">
     <div class="sidebar-header">
-      <h2>Host Groups</h2>
+      <h2>{{ t('components.sidebar.title') }}</h2>
       <button class="btn btn-add" @click="$emit('open-add-modal')">+</button>
     </div>
     
@@ -9,7 +9,7 @@
       <input 
         :value="searchQuery"
         @input="$emit('update:search-query', $event.target.value)"
-        placeholder="Search groups..." 
+        :placeholder="t('components.sidebar.searchPlaceholder')" 
         class="search-input"
       />
     </div>
@@ -23,10 +23,10 @@
       >
         <div class="tree-item-content">
           <div class="item-icon">
-            <el-tag size="small" type="info">System</el-tag>
+            <el-tag size="small" type="info">{{ t('tags.system') }}</el-tag>
           </div>
           <div class="item-details">
-            <div class="item-name">System Host File</div>
+            <div class="item-name">{{ t('components.sidebar.systemHostFile') }}</div>
             <div class="item-description">{{ systemHostPath }}</div>
           </div>
           <div class="item-actions">
@@ -37,7 +37,7 @@
               <template #dropdown>
                 <el-dropdown-menu>
                   <el-dropdown-item command="restore">
-                    Restore System Host
+                    {{ t('components.sidebar.restoreSystemHost') }}
                   </el-dropdown-item>
                 </el-dropdown-menu>
               </template>
@@ -55,38 +55,38 @@
       >
         <div class="tree-item-content">
           <div class="item-icon">
-            <el-tag v-if="group.isRemote" size="small" type="primary">Remote</el-tag>
-            <el-tag v-else size="small" type="success">Local</el-tag>
+            <el-tag v-if="group.isRemote" size="small" type="primary">{{ t('tags.remote') }}</el-tag>
+            <el-tag v-else size="small" type="success">{{ t('tags.local') }}</el-tag>
           </div>
           <div class="item-details">
             <div class="item-name">{{ group.name }}</div>
-            <div class="item-description">{{ group.description || 'No description' }}</div>
+            <div class="item-description">{{ group.description || t('components.sidebar.noDescription') }}</div>
           </div>
           <div class="item-actions">
             <div 
               class="switch-control" 
               :class="{ 'enabled': group.enabled, 'disabled': !group.enabled }"
               @click.stop="$emit('toggle-status', group)"
-              :title="group.enabled ? 'Click to disable' : 'Click to enable'"
+              :title="group.enabled ? t('components.sidebar.clickToDisable') : t('components.sidebar.clickToEnable')"
             >
               <div class="switch-slider">
-                <span class="switch-text">{{ group.enabled ? 'ON' : 'OFF' }}</span>
+                <span class="switch-text">{{ group.enabled ? t('common.on') : t('common.off') }}</span>
               </div>
             </div>
             <el-button
               type="danger"
               size="small"
               @click.stop="$emit('delete-group', group.id)"
-              title="Delete group"
+              :title="t('components.sidebar.deleteGroupTitle')"
             >
-              Delete
+              {{ t('common.delete') }}
             </el-button>
           </div>
         </div>
       </div>
       
       <div v-if="filteredGroups.length === 0 && !searchQuery" class="no-results">
-        No host groups found
+        {{ t('components.sidebar.noHostGroups') }}
       </div>
     </div>
   </div>
@@ -94,6 +94,7 @@
 
 <script>
 import { ElDropdown, ElDropdownMenu, ElDropdownItem, ElButton, ElTag } from 'element-plus';
+import { useI18n } from 'vue-i18n';
 
 export default {
   name: 'Sidebar',
@@ -121,6 +122,10 @@ export default {
       type: String,
       default: ''
     }
+  },
+  setup() {
+    const { t } = useI18n();
+    return { t };
   },
   emits: ['select-group', 'toggle-status', 'delete-group', 'open-add-modal', 'update:search-query', 'select-system-host', 'restore-system-hosts'],
   computed: {

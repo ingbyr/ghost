@@ -1,5 +1,9 @@
 <template>
   <div id="app">
+    <div class="top-bar-app">
+      <div class="app-title">Ghost Host Manager</div>
+      <LanguageSwitcher />
+    </div>
     <div class="app-container">
       <Sidebar
         :groups="groups"
@@ -75,11 +79,13 @@ import {
 } from '../wailsjs/go/main/App'
 
 import { ElMessageBox, ElNotification } from 'element-plus';
+import { useI18n } from 'vue-i18n'; // Import the composition API for i18n
 
 import Sidebar from './components/Sidebar.vue';
 import MainPanel from './components/MainPanel.vue';
 import ActionBar from './components/ActionBar.vue';
 import AddGroupModal from './components/AddGroupModal.vue';
+import LanguageSwitcher from './components/LanguageSwitcher.vue';
 
 export default {
   name: 'App',
@@ -87,7 +93,13 @@ export default {
     Sidebar,
     MainPanel,
     ActionBar,
-    AddGroupModal
+    AddGroupModal,
+    LanguageSwitcher
+  },
+  setup() {
+    // Use the i18n composition API
+    const { t } = useI18n();
+    return { t };
   },
   data() {
     return {
@@ -145,7 +157,7 @@ export default {
           }
         }
       } catch (error) {
-        this.showMessage(`Failed to load host groups: ${error}`, 'error')
+        this.showMessage(`${this.t('messages.failedToLoadSystemHost', { error: error })}`, 'error')
       }
     },
 
@@ -153,11 +165,11 @@ export default {
       if (this.isDirty) {
         // 使用 Element Plus 的 MessageBox 替换 confirm
         ElMessageBox.confirm(
-          'You have unsaved changes. Are you sure you want to switch groups?',
-          'Confirmation',
+          this.t('messages.confirmSwitchGroup'),
+          this.t('messages.confirmSwitchGroupTitle'),
           {
-            confirmButtonText: 'OK',
-            cancelButtonText: 'Cancel',
+            confirmButtonText: this.t('common.confirm'),
+            cancelButtonText: this.t('common.cancel'),
             type: 'warning',
             draggable: true
           }
@@ -203,7 +215,7 @@ export default {
         // 启用或禁用组后，应用所有启用的Hosts
         await this.applyHosts()
       } catch (error) {
-        this.showMessage(`Failed to toggle group: ${error}`, 'error')
+        this.showMessage(`${this.t('messages.failedToUpdateGroup', { error: error })}`, 'error')
       }
     },
     
@@ -227,15 +239,15 @@ export default {
           await this.applyHosts();
         }
         
-        this.showMessage('Remote group content updated successfully', 'success');
+        this.showMessage(this.t('messages.remoteContentUpdated'), 'success');
       } catch (error) {
-        this.showMessage(`Failed to refresh remote group: ${error}`, 'error')
+        this.showMessage(`${this.t('messages.failedToUpdateRemoteContent', { error: error })}`, 'error')
       }
     },
 
     async addGroup(newGroupData) {
       if (!newGroupData.name) {
-        this.showMessage('Name is required', 'error')
+        this.showMessage(this.t('messages.nameIsRequired'), 'error')
         return
       }
 
@@ -251,9 +263,9 @@ export default {
         }
         this.closeAddGroupModal()
         await this.loadHostGroups()
-        this.showMessage('Group added successfully', 'success')
+        this.showMessage(this.t('messages.groupAddedSuccessfully'), 'success')
       } catch (error) {
-        this.showMessage(`Failed to add group: ${error}`, 'error')
+        this.showMessage(`${this.t('messages.failedToUpdateGroup', { error: error })}`, 'error')
       }
     },
 
@@ -261,11 +273,11 @@ export default {
       // 使用 Element Plus 的 MessageBox 替换 confirm
       try {
         await ElMessageBox.confirm(
-          'Are you sure you want to delete this group?',
-          'Confirm Delete',
+          this.t('messages.confirmDelete'),
+          this.t('messages.confirmDeleteTitle'),
           {
-            confirmButtonText: 'Delete',
-            cancelButtonText: 'Cancel',
+            confirmButtonText: this.t('common.delete'),
+            cancelButtonText: this.t('common.cancel'),
             type: 'warning',
             draggable: true
           }
@@ -279,11 +291,11 @@ export default {
           this.editingGroup = {}
           this.remoteContentPreview = ''
         }
-        this.showMessage('Group deleted successfully', 'success')
+        this.showMessage(this.t('messages.groupDeletedSuccessfully'), 'success')
       } catch (error) {
         // 用户点击了取消或关闭对话框
         if (error !== 'cancel') {
-          this.showMessage(`Failed to delete group: ${error}`, 'error')
+          this.showMessage(`${this.t('messages.failedToDeleteGroup', { error: error })}`, 'error')
         }
       }
     },
@@ -298,14 +310,14 @@ export default {
           this.selectedGroup = { ...editingGroupData }
         }
         this.isDirty = false
-        this.showMessage('Group updated successfully', 'success')
+        this.showMessage(this.t('messages.groupUpdatedSuccessfully'), 'success')
         
         // 如果该组已启用，则自动应用Hosts
         if (editingGroupData.enabled) {
           await this.applyHosts();
         }
       } catch (error) {
-        this.showMessage(`Failed to update group: ${error}`, 'error')
+        this.showMessage(`${this.t('messages.failedToUpdateGroup', { error: error })}`, 'error')
       }
     },
 
@@ -329,7 +341,7 @@ export default {
           await this.refreshSystemHost()
         }
       } catch (error) {
-        this.showMessage(`Failed to apply hosts: ${error}`, 'error')
+        this.showMessage(`${this.t('messages.failedToApplyHosts', { error: error })}`, 'error')
       }
     },
 
@@ -347,18 +359,18 @@ export default {
           await this.applyHosts();
         }
         
-        this.showMessage('Remote groups refreshed', 'success')
+        this.showMessage(this.t('messages.remoteGroupsRefreshed'), 'success')
       } catch (error) {
-        this.showMessage(`Failed to refresh remote groups: ${error}`, 'error')
+        this.showMessage(`${this.t('messages.failedToRefreshRemoteGroups', { error: error })}`, 'error')
       }
     },
     
     async backupNow() {
       try {
         const result = await BackupAppAndSystemHosts();
-        this.showMessage(`App data backup completed successfully: ${result}`, 'success');
+        this.showMessage(this.t('messages.backupCompleted'), 'success');
       } catch (error) {
-        this.showMessage(`Failed to perform backup: ${error}`, 'error');
+        this.showMessage(`${this.t('messages.failedToPerformBackup', { error: error })}`, 'error');
       }
     },
 
@@ -367,19 +379,19 @@ export default {
         // 获取备份列表
         const backups = await ListDataBackups();
         if (backups.length === 0) {
-          this.showMessage('No backups available', 'error');
+          this.showMessage(this.t('messages.noBackupsAvailable'), 'error');
           return;
         }
 
         // 构建备份列表的HTML字符串
         let backupListHtml = `<div style="max-height: 400px; overflow-y: auto;">
-          <p style="margin-bottom: 15px;">请选择要恢复的备份文件：</p>`;
+          <p style="margin-bottom: 15px;">${this.t('messages.selectBackup', { count: backups.length })}：</p>`;
         
         backups.forEach((backup, index) => {
           backupListHtml += `
             <div style="display: flex; justify-content: space-between; align-items: center; margin: 8px 0; padding: 12px; border: 1px solid #dcdfe6; border-radius: 4px; background-color: #fafafa;">
               <span style="flex: 1; word-break: break-all; margin-right: 10px; font-size: 14px;">${backup}</span>
-              <button id="restore-btn-${index}" style="padding: 6px 12px; background-color: #409eff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;">恢复</button>
+              <button id="restore-btn-${index}" style="padding: 6px 12px; background-color: #409eff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;">${this.t('common.restore')}</button>
             </div>`;
         });
         
@@ -391,12 +403,12 @@ export default {
         
         // 显示包含备份列表的对话框
         const msgBox = ElMessageBox({
-          title: 'Restore Backup',
+          title: this.t('components.actionBar.restoreBackup'),
           dangerouslyUseHTMLString: true,
           message: tempDiv.innerHTML,
           showCancelButton: false,
           showConfirmButton: true,
-          confirmButtonText: 'Close',
+          confirmButtonText: this.t('common.close'),
           closeOnClickModal: false,
           closeOnPressEscape: true,
           customStyle: { 
@@ -417,11 +429,11 @@ export default {
                   
                   // 确认恢复操作
                   await ElMessageBox.confirm(
-                    `Are you sure you want to restore from ${backup}?\n\nThis will overwrite your current data!`,
-                    'Confirm Restore',
+                    this.t('messages.restoreConfirmation', { backup: backup }),
+                    this.t('messages.confirmRestoreTitle'),
                     {
-                      confirmButtonText: 'Restore',
-                      cancelButtonText: 'Cancel',
+                      confirmButtonText: this.t('common.restore'),
+                      cancelButtonText: this.t('common.cancel'),
                       type: 'warning',
                       draggable: true
                     }
@@ -457,10 +469,14 @@ export default {
                   await this.refreshSystemHost();
 
                   const enabledCount = this.groups.filter(g => g.enabled).length;
-                  this.showMessage(`Restored ${this.groups.length} groups (${enabledCount} enabled) from ${backup}`, 'success');
+                  this.showMessage(this.t('messages.restoreCompleted', { 
+                    count: this.groups.length, 
+                    enabledCount: enabledCount,
+                    backup: backup
+                  }), 'success');
                 } catch (error) {
                   if (error !== 'cancel' && error?.type !== 'cancel') {
-                    this.showMessage(`Failed to restore backup: ${error}`, 'error');
+                    this.showMessage(`${this.t('messages.failedToRestoreBackup', { error: error })}`, 'error');
                   }
                   // 重新显示备份列表
                   setTimeout(() => {
@@ -476,7 +492,7 @@ export default {
 
       } catch (error) {
         if (error !== 'cancel' && error?.type !== 'cancel') {
-          this.showMessage(`Failed to restore backup: ${error}`, 'error');
+          this.showMessage(`${this.t('messages.failedToRestoreBackup', { error: error })}`, 'error');
         }
       }
     },
@@ -507,7 +523,7 @@ export default {
         // 设置选中系统host
         this.selectedGroup = {
           id: 'system-host',
-          name: 'System Host File',
+          name: this.t('components.systemHostPreview.systemHostFile'),
           description: this.systemHostPath,
           content: this.systemHostContent,
           enabled: false,
@@ -520,7 +536,7 @@ export default {
         this.editingGroup = {}
         this.isDirty = false
       } catch (error) {
-        this.showMessage(`Failed to load system host file: ${error}`, 'error')
+        this.showMessage(`${this.t('messages.failedToLoadSystemHost', { error: error })}`, 'error')
       }
     },
 
@@ -532,17 +548,17 @@ export default {
         console.log('Has raw hosts backup:', hasBackup); // 调试信息
         
         if (!hasBackup) {
-          this.showMessage('No system hosts backup found! Expected file: raw_hosts_backup.txt', 'error');
+          this.showMessage(this.t('messages.noSystemHostsBackupFound'), 'error');
           return;
         }
         
         // 使用 Element Plus 的 MessageBox 替换 confirm
         await ElMessageBox.confirm(
-          'Are you sure you want to restore the system hosts file to its original state using the backup? This will revert all changes made by Ghost Host Manager.',
-          'Confirm Restore System Hosts',
+          this.t('messages.confirmRestoreSystemHosts'),
+          this.t('messages.confirmRestoreTitle'),
           {
-            confirmButtonText: 'Restore',
-            cancelButtonText: 'Cancel',
+            confirmButtonText: this.t('common.restore'),
+            cancelButtonText: this.t('common.cancel'),
             type: 'warning',
             draggable: true
           }
@@ -554,11 +570,11 @@ export default {
         // 自动禁用所有其他host分组
         await this.disableAllHostGroups();
         
-        this.showMessage('System hosts restored successfully! All host groups have been disabled.', 'success');
+        this.showMessage(this.t('messages.systemHostsRestored'), 'success');
       } catch (error) {
         if (error !== 'cancel' && error?.type !== 'cancel') {
           console.error('Failed to restore system hosts:', error);
-          this.showMessage(`Failed to restore system hosts: ${error}`, 'error');
+          this.showMessage(`${this.t('messages.failedToRestoreSystemHosts', { error: error })}`, 'error');
         }
       }
     },
@@ -583,7 +599,7 @@ export default {
         await this.applyHosts();
       } catch (error) {
         console.error('Failed to disable host groups:', error);
-        this.showMessage(`Failed to disable host groups: ${error}`, 'error');
+        this.showMessage(`${this.t('messages.failedToDisableHostGroups', { error: error })}`, 'error');
       }
     },
 
@@ -594,13 +610,13 @@ export default {
           this.selectedGroup.content = this.systemHostContent
         }
       } catch (error) {
-        this.showMessage(`Failed to refresh system host file: ${error}`, 'error')
+        this.showMessage(`${this.t('messages.failedToRefreshSystemHost', { error: error })}`, 'error')
       }
     },
 
     async refreshRemoteContent() {
       if (!this.selectedGroup || !this.selectedGroup.isRemote || !this.selectedGroup.url) {
-        this.showMessage('No remote URL configured for this group', 'error')
+        this.showMessage(this.t('messages.noRemoteUrlConfigured'), 'error')
         return
       }
 
@@ -628,9 +644,9 @@ export default {
           await this.applyHosts();
         }
         
-        this.showMessage('Remote content updated successfully', 'success')
+        this.showMessage(this.t('messages.remoteContentUpdated'), 'success')
       } catch (error) {
-        this.showMessage(`Failed to update remote content: ${error}`, 'error')
+        this.showMessage(`${this.t('messages.failedToUpdateRemoteContent', { error: error })}`, 'error')
       } finally {
         this.isRefreshingRemote = false
       }
@@ -638,7 +654,7 @@ export default {
 
     async fetchRemoteContent() {
       if (!this.editingGroup.url) {
-        this.showMessage('Please enter a URL first', 'error');
+        this.showMessage(this.t('messages.pleaseEnterUrl'), 'error');
         return;
       }
 
@@ -664,14 +680,14 @@ export default {
           await this.loadHostGroups();
         }
         
-        this.showMessage('Remote content fetched and saved successfully', 'success');
+        this.showMessage(this.t('messages.remoteContentFetched'), 'success');
         
         // 如果当前选中的组已启用，则自动应用Hosts
         if (this.selectedGroup && this.selectedGroup.enabled) {
           await this.applyHosts();
         }
       } catch (error) {
-        this.showMessage(`Failed to fetch remote content: ${error}`, 'error');
+        this.showMessage(`${this.t('messages.failedToFetchRemoteContent', { error: error })}`, 'error');
       } finally {
         this.isFetchingRemote = false;
       }
@@ -682,7 +698,7 @@ export default {
       switch (type) {
         case 'success':
           ElNotification({
-            title: 'Success',
+            title: this.t('common.success', 'Success'),
             message: text,
             type: 'success',
             duration: 3000,
@@ -691,7 +707,7 @@ export default {
           break;
         case 'error':
           ElNotification({
-            title: 'Error',
+            title: this.t('common.error', 'Error'),
             message: text,
             type: 'error',
             duration: 5000,
@@ -700,7 +716,7 @@ export default {
           break;
         case 'info':
           ElNotification({
-            title: 'Info',
+            title: this.t('common.info', 'Info'),
             message: text,
             type: 'info',
             duration: 3000,
@@ -709,7 +725,7 @@ export default {
           break;
         default:
           ElNotification({
-            title: 'Message',
+            title: this.t('common.message', 'Message'),
             message: text,
             type: 'info',
             duration: 3000,
@@ -730,6 +746,17 @@ export default {
   height: 100vh;
   display: flex;
   flex-direction: column;
+}
+
+.top-bar-app {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+  font-weight: bold;
+  font-size: 16px;
 }
 
 .app-container {

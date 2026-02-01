@@ -1,14 +1,14 @@
 <template>
   <div v-if="showModal" class="modal-overlay" @click="closeModal">
     <div class="modal-content" @click.stop>
-      <h3>Add New Host Group</h3>
+      <h3>{{ t('components.addGroupModal.title') }}</h3>
       
       <!-- 选择Host类型 -->
       <div v-if="!localNewGroup.typeSelected" class="form-group">
-        <label>Select Host Type</label>
+        <label>{{ t('components.addGroupModal.selectHostType') }}</label>
         <div class="host-type-selection">
-          <button class="btn btn-option" @click="selectHostType(false)">Local Host</button>
-          <button class="btn btn-option" @click="selectHostType(true)">Remote Host</button>
+          <button class="btn btn-option" @click="selectHostType(false)">{{ t('components.addGroupModal.localHost') }}</button>
+          <button class="btn btn-option" @click="selectHostType(true)">{{ t('components.addGroupModal.remoteHost') }}</button>
         </div>
       </div>
       
@@ -17,19 +17,19 @@
         <el-row :gutter="20">
           <el-col :span="12">
             <div class="form-group">
-              <label>Name *</label>
+              <label>{{ t('common.name') }} *</label>
               <input 
                 v-model="localNewGroup.name" 
-                placeholder="Display name"
+                :placeholder="t('common.name')"
               />
             </div>
           </el-col>
           <el-col :span="12">
             <div class="form-group">
-              <label>Description</label>
+              <label>{{ t('common.description') }}</label>
               <input 
                 v-model="localNewGroup.description" 
-                placeholder="Description"
+                :placeholder="t('common.description')"
               />
             </div>
           </el-col>
@@ -37,21 +37,21 @@
         
         <!-- 如果是远程Host，显示URL字段 -->
         <div v-if="localNewGroup.isRemote" class="form-group">
-          <label>URL</label>
+          <label>{{ t('common.url') }}</label>
           <input 
             v-model="localNewGroup.url" 
-            placeholder="Remote hosts URL"
+            :placeholder="t('components.remoteHostEditor.remoteContentPlaceholder')"
           />
         </div>
         
         <div class="form-row">
-          <button class="btn btn-secondary" @click="resetHostTypeSelection">Back</button>
-          <button class="btn btn-primary" @click="addGroup">Add Group</button>
+          <button class="btn btn-secondary" @click="resetHostTypeSelection">{{ t('common.back') }}</button>
+          <button class="btn btn-primary" @click="addGroup">{{ t('components.addGroupModal.addGroup') }}</button>
         </div>
       </div>
       
       <div v-if="localNewGroup.typeSelected" class="modal-actions">
-        <button class="btn btn-secondary" @click="closeModal">Cancel</button>
+        <button class="btn btn-secondary" @click="closeModal">{{ t('components.addGroupModal.cancel') }}</button>
       </div>
     </div>
   </div>
@@ -59,6 +59,7 @@
 
 <script>
 import { ElRow, ElCol } from 'element-plus';
+import { useI18n } from 'vue-i18n';
 
 export default {
   name: 'AddGroupModal',
@@ -82,6 +83,10 @@ export default {
         url: ''
       })
     }
+  },
+  setup() {
+    const { t } = useI18n();
+    return { t };
   },
   emits: ['close-modal', 'add-group', 'update:newGroup'],
   data() {

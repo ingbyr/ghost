@@ -30,13 +30,14 @@
     />
     
     <div v-else class="welcome-panel">
-      <h3>Select a host group to edit</h3>
-      <p>Choose a host group from the left sidebar to view and edit its content.</p>
+      <h3>{{ t('components.mainPanel.selectHostGroupTitle') }}</h3>
+      <p>{{ t('components.mainPanel.selectHostGroupDesc') }}</p>
     </div>
   </div>
 </template>
 
 <script>
+import { useI18n } from 'vue-i18n';
 import RemoteHostEditor from './RemoteHostEditor.vue';
 import LocalHostEditor from './LocalHostEditor.vue';
 import SystemHostPreview from './SystemHostPreview.vue';
@@ -47,6 +48,10 @@ export default {
     RemoteHostEditor,
     LocalHostEditor,
     SystemHostPreview
+  },
+  setup() {
+    const { t } = useI18n();
+    return { t };
   },
   props: {
     selectedGroup: {

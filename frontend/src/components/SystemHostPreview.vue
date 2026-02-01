@@ -1,12 +1,12 @@
 <template>
   <div class="group-editor">
     <div class="editor-header">
-      <h3>System Host File</h3>
+      <h3>{{ t('components.systemHostPreview.systemHostFile') }}</h3>
     </div>
     
     <div class="editor-content">
       <div class="form-group">
-        <label>File Path</label>
+        <label>{{ t('components.systemHostPreview.filePath') }}</label>
         <input 
           :value="systemHostPath" 
           readonly
@@ -15,27 +15,33 @@
       </div>
       
       <div class="form-group">
-        <label>Content (Read-Only)</label>
+        <label>{{ t('components.systemHostPreview.contentReadOnly') }}</label>
         <textarea 
           :value="systemHostContent" 
           readonly
-          placeholder="System host file content will be displayed here..."
+          :placeholder="t('components.systemHostPreview.systemContentPlaceholder')"
           rows="20"
           class="disabled-input"
         ></textarea>
       </div>
       
       <div class="group-meta">
-        <p><strong>Type:</strong> System File</p>
-        <p><strong>Editable:</strong> No (Requires admin privileges)</p>
+        <p><strong>{{ t('common.type') }}:</strong> {{ t('types.systemFile') }}</p>
+        <p><strong>{{ t('types.editable') }}:</strong> {{ t('types.adminRequired') }}</p>
       </div>
     </div>
   </div>
 </template>
 
 <script>
+import { useI18n } from 'vue-i18n';
+
 export default {
   name: 'SystemHostPreview',
+  setup() {
+    const { t } = useI18n();
+    return { t };
+  },
   props: {
     systemHostPath: {
       type: String,

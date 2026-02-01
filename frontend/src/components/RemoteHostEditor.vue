@@ -8,7 +8,7 @@
       <el-row :gutter="20" class="form-row">
         <el-col :span="12">
           <div class="form-group">
-            <label>Name *</label>
+            <label>{{ t('common.name') }} *</label>
             <input 
               v-model="localEditingGroup.name" 
               @input="markAsDirty"
@@ -18,7 +18,7 @@
         </el-col>
         <el-col :span="12">
           <div class="form-group">
-            <label>Description</label>
+            <label>{{ t('common.description') }}</label>
             <input 
               v-model="localEditingGroup.description" 
               @input="markAsDirty"
@@ -31,11 +31,11 @@
       <el-row :gutter="20" class="form-row">
         <el-col :span="16">
           <div class="form-group">
-            <label>URL</label>
+            <label>{{ t('common.url') }}</label>
             <input 
               v-model="localEditingGroup.url" 
               @input="markAsDirty"
-              placeholder="Remote hosts URL"
+              :placeholder="t('components.remoteHostEditor.remoteContentPlaceholder')"
               :readonly="group.id.startsWith('system-')"
             />
           </div>
@@ -47,29 +47,29 @@
               @click="fetchRemoteContent"
               :disabled="!localEditingGroup.url || isFetchingRemote"
             >
-              {{ isFetchingRemote ? 'Getting...' : '获取host内容' }}
+              {{ isFetchingRemote ? t('components.remoteHostEditor.getting') : t('components.remoteHostEditor.fetchHostContent') }}
             </button>
           </div>
         </el-col>
       </el-row>
       
       <div class="form-group" v-if="remoteContentPreview">
-        <label>Remote Content (Preview)</label>
+        <label>{{ t('components.remoteHostEditor.remoteContentPreview') }}</label>
         <textarea 
           :value="remoteContentPreview" 
           readonly
-          placeholder="Remote content will be displayed here after refresh..."
+          :placeholder="t('components.remoteHostEditor.remoteContentPlaceholder')"
           rows="15"
           class="disabled-input"
         ></textarea>
       </div>
       
       <div class="group-meta">
-        <p><strong>Created:</strong> {{ formatDate(group.createdAt) }}</p>
-        <p><strong>Last Updated:</strong> {{ formatDate(group.updatedAt) }}</p>
-        <p><strong>ID:</strong> {{ group.id }}</p>
-        <p><strong>Type:</strong> {{ group.isRemote ? 'REMOTE' : 'LOCAL' }}</p>
-        <p v-if="group.lastUpdated"><strong>Last Fetched:</strong> {{ formatDate(group.lastUpdated) }}</p>
+        <p><strong>{{ t('common.created') }}:</strong> {{ formatDate(group.createdAt) }}</p>
+        <p><strong>{{ t('common.lastUpdated') }}:</strong> {{ formatDate(group.updatedAt) }}</p>
+        <p><strong>{{ t('common.id') }}:</strong> {{ group.id }}</p>
+        <p><strong>{{ t('common.type') }}:</strong> {{ group.isRemote ? t('common.remote') : t('common.local') }}</p>
+        <p v-if="group.lastUpdated"><strong>{{ t('messages.lastFetched') }}:</strong> {{ formatDate(group.lastUpdated) }}</p>
       </div>
     </div>
     
@@ -79,13 +79,13 @@
         class="btn btn-primary" 
         @click="saveGroup"
       >
-        Save Changes
+        {{ t('components.remoteHostEditor.saveChanges') }}
       </button>
       <button 
         class="btn btn-secondary" 
         @click="cancelEdit"
       >
-        Cancel
+        {{ t('common.cancel') }}
       </button>
     </div>
   </div>
@@ -93,6 +93,7 @@
 
 <script>
 import { ElRow, ElCol } from 'element-plus';
+import { useI18n } from 'vue-i18n';
 
 export default {
   name: 'RemoteHostEditor',
@@ -117,6 +118,10 @@ export default {
       type: Boolean,
       default: false
     }
+  },
+  setup() {
+    const { t } = useI18n();
+    return { t };
   },
   emits: ['save-group', 'cancel-edit', 'fetch-remote-content', 'mark-as-dirty', 'apply-hosts'],
   data() {

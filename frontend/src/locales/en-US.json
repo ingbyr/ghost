@@ -1,0 +1,147 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "delete": "Delete",
+    "add": "Add",
+    "refresh": "Refresh",
+    "backup": "Backup",
+    "restore": "Restore",
+    "enable": "Enable",
+    "disable": "Disable",
+    "on": "ON",
+    "off": "OFF",
+    "name": "Name",
+    "description": "Description",
+    "content": "Content",
+    "url": "URL",
+    "created": "Created",
+    "lastUpdated": "Last Updated",
+    "id": "ID",
+    "type": "Type",
+    "status": "Status",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "local": "Local",
+    "remote": "Remote",
+    "system": "System",
+    "close": "Close",
+    "back": "Back",
+    "yes": "Yes",
+    "no": "No",
+    "success": "Success",
+    "error": "Error",
+    "info": "Info",
+    "message": "Message"
+  },
+  "components": {
+    "sidebar": {
+      "title": "Host Groups",
+      "searchPlaceholder": "Search groups...",
+      "systemHostFile": "System Host File",
+      "clickToDisable": "Click to disable",
+      "clickToEnable": "Click to enable",
+      "noDescription": "No description",
+      "noHostGroups": "No host groups found",
+      "restoreSystemHost": "Restore System Host",
+      "deleteGroupTitle": "Delete group",
+      "restoreSystemHosts": "Restore System Hosts"
+    },
+    "actionBar": {
+      "refreshRemoteGroups": "Refresh Remote Groups",
+      "backupNow": "Backup Now",
+      "restoreBackup": "Restore Backup",
+      "refreshList": "Refresh List",
+      "refreshRemoteGroupsTooltip": "Refresh all remote host groups",
+      "backupNowTooltip": "Create manual backup",
+      "restoreBackupTooltip": "Restore from backup"
+    },
+    "addGroupModal": {
+      "title": "Add New Host Group",
+      "selectHostType": "Select Host Type",
+      "localHost": "Local Host",
+      "remoteHost": "Remote Host",
+      "nameRequired": "Name is required",
+      "addGroup": "Add Group",
+      "cancel": "Cancel"
+    },
+    "remoteHostEditor": {
+      "remoteContentPreview": "Remote Content (Preview)",
+      "remoteContentPlaceholder": "Remote content will be displayed here after refresh...",
+      "getting": "Getting...",
+      "fetchHostContent": "Fetch Host Content",
+      "saveChanges": "Save Changes"
+    },
+    "localhostEditor": {
+      "readOnlyHint": " (Cannot modify when enabled)",
+      "enterHostEntries": "Enter host entries here..."
+    },
+    "mainPanel": {
+      "selectHostGroupTitle": "Select a host group to edit",
+      "selectHostGroupDesc": "Choose a host group from the left sidebar to view and edit its content."
+    },
+    "systemHostPreview": {
+      "systemHostFile": "System Host File",
+      "filePath": "File Path",
+      "contentReadOnly": "Content (Read-Only)",
+      "systemContentPlaceholder": "System host file content will be displayed here..."
+    }
+  },
+  "messages": {
+    "confirmDelete": "Are you sure you want to delete this group?",
+    "confirmDeleteTitle": "Confirm Delete",
+    "confirmSwitchGroup": "You have unsaved changes. Are you sure you want to switch groups?",
+    "confirmSwitchGroupTitle": "Confirmation",
+    "groupAddedSuccessfully": "Group added successfully",
+    "groupUpdatedSuccessfully": "Group updated successfully",
+    "groupDeletedSuccessfully": "Group deleted successfully",
+    "remoteGroupsRefreshed": "Remote groups refreshed",
+    "remoteContentFetched": "Remote content fetched and saved successfully",
+    "remoteContentUpdated": "Remote content updated successfully",
+    "applyingHosts": "Applying Hosts...",
+    "hostsAppliedSuccessfully": "Hosts applied successfully",
+    "backupCompleted": "App data backup completed successfully",
+    "noBackupsAvailable": "No backups available",
+    "restoreConfirmation": "Are you sure you want to restore from {backup}?\\n\\nThis will overwrite your current data!",
+    "restoreCompleted": "Restored {count} groups ({enabledCount} enabled) from {backup}",
+    "nameIsRequired": "Name is required",
+    "noRemoteUrlConfigured": "No remote URL configured for this group",
+    "failedToUpdateRemoteContent": "Failed to update remote content: {error}",
+    "failedToFetchRemoteContent": "Failed to fetch remote content: {error}",
+    "failedToLoadSystemHost": "Failed to load system host file: {error}",
+    "failedToApplyHosts": "Failed to apply hosts: {error}",
+    "failedToDeleteGroup": "Failed to delete group: {error}",
+    "failedToUpdateGroup": "Failed to update group: {error}",
+    "failedToRefreshRemoteGroups": "Failed to refresh remote groups: {error}",
+    "failedToPerformBackup": "Failed to perform backup: {error}",
+    "failedToRestoreBackup": "Failed to restore backup: {error}",
+    "systemHostsRestored": "System hosts restored successfully! All host groups have been disabled.",
+    "noSystemHostsBackupFound": "No system hosts backup found! Expected file: raw_hosts_backup.txt",
+    "confirmRestoreSystemHosts": "Are you sure you want to restore the system hosts file to its original state using the backup? This will revert all changes made by Ghost Host Manager.",
+    "pleaseEnterUrl": "Please enter a URL first",
+    "failedToRefreshSystemHost": "Failed to refresh system host file: {error}",
+    "failedToDisableHostGroups": "Failed to disable host groups: {error}",
+    "failedToRestoreSystemHosts": "Failed to restore system hosts: {error}",
+    "confirmRestoreTitle": "Confirm Restore",
+    "selectBackup": "Please select a backup file to restore from ({count} available):",
+    "restoreBackupTitle": "Restore Backup",
+    "lastFetched": "Last Fetched"
+  },
+  "tags": {
+    "remote": "Remote",
+    "local": "Local",
+    "system": "System"
+  },
+  "status": {
+    "enabled": "Enabled",
+    "disabled": "Disabled"
+  },
+  "types": {
+    "remote": "Remote",
+    "local": "Local",
+    "systemFile": "System File",
+    "editable": "Editable",
+    "adminRequired": "Requires admin privileges"
+  }
+}

@@ -8,7 +8,7 @@
       <el-row :gutter="20" class="form-row">
         <el-col :span="12">
           <div class="form-group">
-            <label>Name *</label>
+            <label>{{ t('common.name') }} *</label>
             <input 
               v-model="localEditingGroup.name" 
               @input="markAsDirty"
@@ -18,7 +18,7 @@
         </el-col>
         <el-col :span="12">
           <div class="form-group">
-            <label>Description</label>
+            <label>{{ t('common.description') }}</label>
             <input 
               v-model="localEditingGroup.description" 
               @input="markAsDirty"
@@ -29,19 +29,19 @@
       </el-row>
       
       <div v-if="localEditingGroup.isRemote" class="form-group">
-        <label>URL</label>
+        <label>{{ t('common.url') }}</label>
         <input 
           v-model="localEditingGroup.url" 
           @input="markAsDirty"
-          placeholder="Remote hosts URL"
+          :placeholder="t('components.remoteHostEditor.remoteContentPlaceholder')"
           :disabled="isReadOnly"
         />
       </div>
       
       <div v-if="!localEditingGroup.isRemote" class="form-group">
         <label>
-          Content
-          <span v-if="isReadOnly" class="read-only-hint"> (启用后无法修改)</span>
+          {{ t('common.content') }}
+          <span v-if="isReadOnly" class="read-only-hint"> {{ t('components.localhostEditor.readOnlyHint') }}</span>
         </label>
         <!-- 启用时为只读状态，禁用时为可编辑状态 -->
         <textarea 
@@ -49,19 +49,19 @@
           @input="!isReadOnly ? handleContentInput($event) : null"
           @blur="!isReadOnly ? handleContentBlur($event) : null"
           :readonly="isReadOnly"
-          placeholder="Enter host entries here..."
+          :placeholder="t('components.localhostEditor.enterHostEntries')"
           rows="20"
         ></textarea>
       </div>
       
       <div class="group-meta">
-        <p><strong>Created:</strong> {{ formatDate(group.createdAt) }}</p>
-        <p><strong>Last Updated:</strong> {{ formatDate(group.updatedAt) }}</p>
-        <p><strong>ID:</strong> {{ group.id }}</p>
-        <p><strong>Type:</strong> {{ group.isRemote ? 'REMOTE' : 'LOCAL' }}</p>
-        <p><strong>Status:</strong> 
+        <p><strong>{{ t('common.created') }}:</strong> {{ formatDate(group.createdAt) }}</p>
+        <p><strong>{{ t('common.lastUpdated') }}:</strong> {{ formatDate(group.updatedAt) }}</p>
+        <p><strong>{{ t('common.id') }}:</strong> {{ group.id }}</p>
+        <p><strong>{{ t('common.type') }}:</strong> {{ group.isRemote ? t('common.remote') : t('common.local') }}</p>
+        <p><strong>{{ t('common.status') }}:</strong> 
           <span :class="{'status-enabled': group.enabled, 'status-disabled': !group.enabled}">
-            {{ group.enabled ? 'ENABLED' : 'DISABLED' }}
+            {{ group.enabled ? t('status.enabled') : t('status.disabled') }}
           </span>
         </p>
       </div>
@@ -71,6 +71,7 @@
 
 <script>
 import { ElRow, ElCol } from 'element-plus';
+import { useI18n } from 'vue-i18n';
 
 export default {
   name: 'LocalHostEditor',
@@ -87,6 +88,10 @@ export default {
       type: Object,
       required: true
     }
+  },
+  setup() {
+    const { t } = useI18n();
+    return { t };
   },
   emits: ['save-group', 'cancel-edit', 'mark-as-dirty'],
   data() {

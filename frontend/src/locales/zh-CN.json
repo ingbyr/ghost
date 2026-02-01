@@ -1,0 +1,147 @@
+{
+  "common": {
+    "save": "保存",
+    "cancel": "取消",
+    "confirm": "确认",
+    "delete": "删除",
+    "add": "添加",
+    "refresh": "刷新",
+    "backup": "备份",
+    "restore": "恢复",
+    "enable": "启用",
+    "disable": "禁用",
+    "on": "开启",
+    "off": "关闭",
+    "name": "名称",
+    "description": "描述",
+    "content": "内容",
+    "url": "URL",
+    "created": "创建时间",
+    "lastUpdated": "最后更新",
+    "id": "ID",
+    "type": "类型",
+    "status": "状态",
+    "enabled": "已启用",
+    "disabled": "已禁用",
+    "local": "本地",
+    "remote": "远程",
+    "system": "系统",
+    "close": "关闭",
+    "back": "返回",
+    "yes": "是",
+    "no": "否",
+    "success": "成功",
+    "error": "错误",
+    "info": "信息",
+    "message": "消息"
+  },
+  "components": {
+    "sidebar": {
+      "title": "Host分组",
+      "searchPlaceholder": "搜索分组...",
+      "systemHostFile": "系统Host文件",
+      "clickToDisable": "点击禁用",
+      "clickToEnable": "点击启用",
+      "noDescription": "无描述",
+      "noHostGroups": "没有找到Host分组",
+      "restoreSystemHost": "恢复系统Host",
+      "deleteGroupTitle": "删除分组",
+      "restoreSystemHosts": "恢复系统Hosts"
+    },
+    "actionBar": {
+      "refreshRemoteGroups": "刷新远程分组",
+      "backupNow": "立即备份",
+      "restoreBackup": "恢复备份",
+      "refreshList": "刷新列表",
+      "refreshRemoteGroupsTooltip": "刷新所有远程Host分组",
+      "backupNowTooltip": "创建手动备份",
+      "restoreBackupTooltip": "从备份恢复"
+    },
+    "addGroupModal": {
+      "title": "添加新的Host分组",
+      "selectHostType": "选择主机类型",
+      "localHost": "本地主机",
+      "remoteHost": "远程主机",
+      "nameRequired": "名称必填",
+      "addGroup": "添加分组",
+      "cancel": "取消"
+    },
+    "remoteHostEditor": {
+      "remoteContentPreview": "远程内容(预览)",
+      "remoteContentPlaceholder": "刷新后将在此处显示远程内容...",
+      "getting": "获取中...",
+      "fetchHostContent": "获取host内容",
+      "saveChanges": "保存更改"
+    },
+    "localhostEditor": {
+      "readOnlyHint": " (启用后无法修改)",
+      "enterHostEntries": "在此处输入主机条目..."
+    },
+    "mainPanel": {
+      "selectHostGroupTitle": "选择一个Host分组进行编辑",
+      "selectHostGroupDesc": "从左侧边栏选择一个Host分组以查看和编辑其内容。"
+    },
+    "systemHostPreview": {
+      "systemHostFile": "系统Host文件",
+      "filePath": "文件路径",
+      "contentReadOnly": "内容(只读)",
+      "systemContentPlaceholder": "系统host文件内容将在此处显示..."
+    }
+  },
+  "messages": {
+    "confirmDelete": "您确定要删除此分组吗？",
+    "confirmDeleteTitle": "确认删除",
+    "confirmSwitchGroup": "您有未保存的更改。您确定要切换分组吗？",
+    "confirmSwitchGroupTitle": "确认",
+    "groupAddedSuccessfully": "分组添加成功",
+    "groupUpdatedSuccessfully": "分组更新成功",
+    "groupDeletedSuccessfully": "分组删除成功",
+    "remoteGroupsRefreshed": "远程分组已刷新",
+    "remoteContentFetched": "远程内容获取成功",
+    "remoteContentUpdated": "远程内容更新成功",
+    "applyingHosts": "正在应用Hosts...",
+    "hostsAppliedSuccessfully": "Hosts应用成功",
+    "backupCompleted": "备份完成",
+    "noBackupsAvailable": "没有可用的备份",
+    "restoreConfirmation": "您确定要从{backup}恢复吗？\\n\\n这将覆盖您当前的数据！",
+    "restoreCompleted": "已从{backup}恢复了{count}个分组({enabledCount}个已启用)",
+    "nameIsRequired": "名称是必需的",
+    "noRemoteUrlConfigured": "此分组未配置远程URL",
+    "failedToUpdateRemoteContent": "更新远程内容失败: {error}",
+    "failedToFetchRemoteContent": "获取远程内容失败: {error}",
+    "failedToLoadSystemHost": "加载系统host文件失败: {error}",
+    "failedToApplyHosts": "应用hosts失败: {error}",
+    "failedToDeleteGroup": "删除分组失败: {error}",
+    "failedToUpdateGroup": "更新分组失败: {error}",
+    "failedToRefreshRemoteGroups": "刷新远程分组失败: {error}",
+    "failedToPerformBackup": "执行备份失败: {error}",
+    "failedToRestoreBackup": "恢复备份失败: {error}",
+    "systemHostsRestored": "系统hosts已成功恢复！所有Host分组均已禁用。",
+    "noSystemHostsBackupFound": "未找到系统hosts备份文件！预期文件：raw_hosts_backup.txt",
+    "confirmRestoreSystemHosts": "您确定要使用备份将系统hosts文件恢复到原始状态吗？这将撤销Ghost Host Manager所做的所有更改。",
+    "pleaseEnterUrl": "请先输入URL",
+    "failedToRefreshSystemHost": "刷新系统host文件失败: {error}",
+    "failedToDisableHostGroups": "禁用Host分组失败: {error}",
+    "failedToRestoreSystemHosts": "恢复系统hosts失败: {error}",
+    "confirmRestoreTitle": "确认恢复",
+    "selectBackup": "请选择要恢复的备份文件（共{count}个）",
+    "restoreBackupTitle": "恢复备份",
+    "lastFetched": "最后获取"
+  },
+  "tags": {
+    "remote": "远程",
+    "local": "本地",
+    "system": "系统"
+  },
+  "status": {
+    "enabled": "已启用",
+    "disabled": "已禁用"
+  },
+  "types": {
+    "remote": "远程",
+    "local": "本地",
+    "systemFile": "系统文件",
+    "editable": "可编辑",
+    "adminRequired": "需要管理员权限"
+  }
+}

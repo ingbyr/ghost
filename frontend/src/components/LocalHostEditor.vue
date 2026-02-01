@@ -47,6 +47,7 @@
         <textarea 
           :value="localEditingGroup.content"
           @input="!isReadOnly ? handleContentInput($event) : null"
+          @blur="!isReadOnly ? handleContentBlur($event) : null"
           :readonly="isReadOnly"
           placeholder="Enter host entries here..."
           rows="20"
@@ -64,22 +65,6 @@
           </span>
         </p>
       </div>
-    </div>
-    
-    <!-- 浮动保存按钮，只在非只读模式下显示 -->
-    <div class="floating-save-btn" v-if="isDirty && !isReadOnly">
-      <button 
-        class="btn btn-primary" 
-        @click="saveGroup"
-      >
-        Save Changes
-      </button>
-      <button 
-        class="btn btn-secondary" 
-        @click="cancelEdit"
-      >
-        Cancel
-      </button>
     </div>
   </div>
 </template>
@@ -131,6 +116,12 @@ export default {
       // 更新本地编辑组的内容
       this.localEditingGroup.content = event.target.value;
       this.markAsDirty();
+    },
+    handleContentBlur(event) {
+      // 当内容编辑区域失去焦点时自动保存，但只在不是只读模式时
+      if (!this.isReadOnly && this.isDirty) {
+        this.saveGroup();
+      }
     },
     saveGroup() {
       // 如果是只读模式，则不允许保存

@@ -85,6 +85,11 @@ func (hm *HostManager) getAppDataDir() (string, error) {
 	return backupPath, nil
 }
 
+// GetAppDataDir 获取应用程序数据目录（导出版本）
+func (hm *HostManager) GetAppDataDir() (string, error) {
+	return hm.getAppDataDir()
+}
+
 // CreateBackup 创建系统hosts文件备份
 func (hm *HostManager) CreateBackup() string {
 	// Function removed as per requirement - hosts.ghost_backup logic deleted
@@ -250,4 +255,17 @@ func (hm *HostManager) RestoreFromBackup(backupPath string) error {
 func (hm *HostManager) ListBackups() ([]string, error) {
 	// Function removed as per requirement - hosts.ghost_backup logic deleted
 	return []string{}, nil
+}
+
+// RestoreRawSystemHosts 从指定的原始hosts备份文件恢复系统hosts文件
+func (hm *HostManager) RestoreRawSystemHosts(backupFilePath string) error {
+	// 检查权限
+	if !hm.HasWritePermission() {
+		err := hm.RequestElevatedPrivileges()
+		if err != nil {
+			return fmt.Errorf("failed to gain permission to modify hosts file: %w", err)
+		}
+	}
+
+	return hm.RestoreFromBackup(backupFilePath)
 }

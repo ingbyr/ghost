@@ -29,6 +29,20 @@
             <div class="item-name">System Host File</div>
             <div class="item-description">{{ systemHostPath }}</div>
           </div>
+          <div class="item-actions">
+            <el-dropdown @command="handleSystemHostCommand" trigger="click">
+              <el-button circle size="small">
+                <span>⋯</span>
+              </el-button>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item command="restore">
+                    Restore System Host
+                  </el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+          </div>
         </div>
       </div>
       
@@ -79,8 +93,17 @@
 </template>
 
 <script>
+import { ElDropdown, ElDropdownMenu, ElDropdownItem, ElButton, ElTag } from 'element-plus';
+
 export default {
   name: 'Sidebar',
+  components: {
+    ElDropdown,
+    ElDropdownMenu,
+    ElDropdownItem,
+    ElButton,
+    ElTag
+  },
   props: {
     groups: {
       type: Array,
@@ -99,7 +122,7 @@ export default {
       default: ''
     }
   },
-  emits: ['select-group', 'toggle-status', 'delete-group', 'open-add-modal', 'update:search-query'],
+  emits: ['select-group', 'toggle-status', 'delete-group', 'open-add-modal', 'update:search-query', 'select-system-host', 'restore-system-hosts'],
   computed: {
     filteredGroups() {
       if (!this.searchQuery) {
@@ -116,6 +139,11 @@ export default {
   methods: {
     selectSystemHost() {
       this.$emit('select-system-host');
+    },
+    handleSystemHostCommand(command) {
+      if (command === 'restore') {
+        this.$emit('restore-system-hosts');
+      }
     }
   }
 }

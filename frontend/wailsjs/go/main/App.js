@@ -22,6 +22,10 @@ export function BackupData() {
   return window['go']['main']['App']['BackupData']();
 }
 
+export function BackupRawSystemHosts() {
+  return window['go']['main']['App']['BackupRawSystemHosts']();
+}
+
 export function CreateSystemHostsBackup() {
   return window['go']['main']['App']['CreateSystemHostsBackup']();
 }
@@ -58,6 +62,14 @@ export function Greet(arg1) {
   return window['go']['main']['App']['Greet'](arg1);
 }
 
+export function HasRawHostsBackup() {
+  return window['go']['main']['App']['HasRawHostsBackup']();
+}
+
+export function IsBackupDirEmpty() {
+  return window['go']['main']['App']['IsBackupDirEmpty']();
+}
+
 export function ListDataBackups() {
   return window['go']['main']['App']['ListDataBackups']();
 }
@@ -72,6 +84,10 @@ export function RefreshRemoteGroups() {
 
 export function RestoreData(arg1) {
   return window['go']['main']['App']['RestoreData'](arg1);
+}
+
+export function RestoreRawSystemHosts(arg1) {
+  return window['go']['main']['App']['RestoreRawSystemHosts'](arg1);
 }
 
 export function ToggleHostGroup(arg1, arg2) {

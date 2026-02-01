@@ -269,6 +269,69 @@ func (cs *ConfigStorage) RestoreData(backupFileName string) error {
 	return nil
 }
 
+// HasRawHostsBackup 检查是否存在原始hosts备份文件
+func (cs *ConfigStorage) HasRawHostsBackup() (bool, error) {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return false, err
+	}
+
+	backupPath := filepath.Join(homeDir, AppDataDir, BackupDir, "raw_hosts_backup.txt")
+	_, err = os.Stat(backupPath)
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	return err == nil, err
+}
+
+// IsBackupDirEmpty 检查备份目录是否为空
+func (cs *ConfigStorage) IsBackupDirEmpty() (bool, error) {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return false, err
+	}
+
+	backupPath := filepath.Join(homeDir, AppDataDir, BackupDir)
+	files, err := os.ReadDir(backupPath)
+	if err != nil {
+		return false, err
+	}
+
+	// 检查是否有非临时文件（忽略pre_restore_开头的临时备份）
+	for _, file := range files {
+		if !file.IsDir() && !strings.HasPrefix(file.Name(), "pre_restore_") {
+			return false, nil
+		}
+	}
+
+	return true, nil
+}
+
+// BackupRawSystemHosts 创建原始系统hosts文件的备份
+func (cs *ConfigStorage) BackupRawSystemHosts(systemHostPath string) error {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return err
+	}
+
+	backupPath := filepath.Join(homeDir, AppDataDir, BackupDir)
+	backupFile := filepath.Join(backupPath, "raw_hosts_backup.txt")
+
+	// 读取系统hosts文件内容
+	content, err := os.ReadFile(systemHostPath)
+	if err != nil {
+		return fmt.Errorf("failed to read system hosts file: %w", err)
+	}
+
+	// 写入备份
+	err = os.WriteFile(backupFile, content, 0644)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // cleanupOldBackups 清理旧备份文件
 func (cs *ConfigStorage) cleanupOldBackups() error {
 	homeDir, err := os.UserHomeDir()

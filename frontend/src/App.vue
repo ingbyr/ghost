@@ -1,17 +1,18 @@
 <template>
   <div id="app">
     <div class="app-container">
-      <Sidebar 
+      <Sidebar
         :groups="groups"
         :selected-group="selectedGroup"
         :system-host-path="systemHostPath"
         :search-query="searchQuery"
         @select-group="selectGroup"
-        @select-system-host="selectSystemHost"
         @toggle-status="toggleGroupStatus"
         @delete-group="deleteGroup"
         @open-add-modal="showAddGroupModal = true"
         @update:search-query="searchQuery = $event"
+        @select-system-host="selectSystemHost"
+        @restore-system-hosts="restoreSystemHosts"
       />
       <MainPanel
         :selected-group="selectedGroup"
@@ -68,7 +69,9 @@ import {
   CreateSystemHostsBackup,
   BackupAppAndSystemHosts,
   ListDataBackups,
-  RestoreData
+  RestoreData,
+  RestoreRawSystemHosts,
+  HasRawHostsBackup
 } from '../wailsjs/go/main/App'
 
 import Sidebar from './components/Sidebar.vue';
@@ -439,6 +442,61 @@ Warning: This will overwrite current data!`
         this.isDirty = false
       } catch (error) {
         this.showMessage(`Failed to load system host file: ${error}`, 'error')
+      }
+    },
+
+    async restoreSystemHosts() {
+      try {
+        // 检查是否存在原始hosts备份文件
+        const hasBackup = await HasRawHostsBackup();
+        
+        console.log('Has raw hosts backup:', hasBackup); // 调试信息
+        
+        if (!hasBackup) {
+          this.showMessage('No system hosts backup found! Expected file: raw_hosts_backup.txt', 'error');
+          return;
+        }
+        
+        // 确认恢复操作
+        const confirmed = confirm('Are you sure you want to restore the system hosts file to its original state using the backup? This will revert all changes made by Ghost Host Manager.');
+        if (!confirmed) {
+          return;
+        }
+        
+        // 执行恢复操作
+        await RestoreRawSystemHosts('raw_hosts_backup.txt');
+        
+        // 自动禁用所有其他host分组
+        await this.disableAllHostGroups();
+        
+        this.showMessage('System hosts restored successfully! All host groups have been disabled.', 'success');
+      } catch (error) {
+        console.error('Failed to restore system hosts:', error);
+        this.showMessage(`Failed to restore system hosts: ${error}`, 'error');
+      }
+    },
+    
+    // 自动禁用所有host分组
+    async disableAllHostGroups() {
+      try {
+        // 获取所有host分组
+        const allGroups = await GetHostGroups();
+        
+        // 遍历所有启用的分组并禁用它们
+        for (const group of allGroups) {
+          if (group.enabled) {
+            await ToggleHostGroup(group.id, false);
+          }
+        }
+        
+        // 重新加载host分组以更新UI
+        await this.loadHostGroups();
+        
+        // 应用更改到系统hosts文件
+        await this.applyHosts();
+      } catch (error) {
+        console.error('Failed to disable host groups:', error);
+        this.showMessage(`Failed to disable host groups: ${error}`, 'error');
       }
     },
 

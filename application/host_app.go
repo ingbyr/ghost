@@ -3,6 +3,7 @@ package application
 import (
 	"fmt"
 	"log"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -472,4 +473,30 @@ func (app *HostApp) ListDataBackups() ([]string, error) {
 // RestoreData 从备份文件恢复数据
 func (app *HostApp) RestoreData(backupFileName string) error {
 	return app.configStorage.RestoreData(backupFileName)
+}
+
+// HasRawHostsBackup 检查是否存在原始hosts备份文件
+func (app *HostApp) HasRawHostsBackup() (bool, error) {
+	return app.configStorage.HasRawHostsBackup()
+}
+
+// IsBackupDirEmpty 检查备份目录是否为空
+func (app *HostApp) IsBackupDirEmpty() (bool, error) {
+	return app.configStorage.IsBackupDirEmpty()
+}
+
+// BackupRawSystemHosts 备份当前系统hosts文件
+func (app *HostApp) BackupRawSystemHosts() error {
+	return app.configStorage.BackupRawSystemHosts(app.hostManager.SystemHostPath)
+}
+
+// RestoreRawSystemHosts 从备份恢复系统hosts文件
+func (app *HostApp) RestoreRawSystemHosts(backupFileName string) error {
+	backupDir, err := app.hostManager.GetAppDataDir()
+	if err != nil {
+		return fmt.Errorf("failed to get backup directory: %w", err)
+	}
+
+	backupFilePath := filepath.Join(backupDir, backupFileName)
+	return app.hostManager.RestoreRawSystemHosts(backupFilePath)
 }

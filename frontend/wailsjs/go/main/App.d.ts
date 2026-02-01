@@ -12,6 +12,8 @@ export function BackupConfig():Promise<void>;
 
 export function BackupData():Promise<void>;
 
+export function BackupRawSystemHosts():Promise<void>;
+
 export function CreateSystemHostsBackup():Promise<string>;
 
 export function DeleteHostGroup(arg1:string):Promise<void>;
@@ -30,6 +32,10 @@ export function GetSystemHostsContent():Promise<string>;
 
 export function Greet(arg1:string):Promise<string>;
 
+export function HasRawHostsBackup():Promise<boolean>;
+
+export function IsBackupDirEmpty():Promise<boolean>;
+
 export function ListDataBackups():Promise<Array<string>>;
 
 export function RefreshRemoteGroup(arg1:string):Promise<void>;
@@ -37,6 +43,8 @@ export function RefreshRemoteGroup(arg1:string):Promise<void>;
 export function RefreshRemoteGroups():Promise<void>;
 
 export function RestoreData(arg1:string):Promise<void>;
+
+export function RestoreRawSystemHosts(arg1:string):Promise<void>;
 
 export function ToggleHostGroup(arg1:string,arg2:boolean):Promise<void>;
 

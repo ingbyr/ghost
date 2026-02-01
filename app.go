@@ -32,6 +32,23 @@ func NewApp() *App {
 // so we can call the runtime methods
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
+
+	// 检查备份目录是否为空，如果为空则备份当前系统hosts文件
+	isEmpty, err := a.IsBackupDirEmpty()
+	if err != nil {
+		fmt.Printf("Warning: failed to check if backup directory is empty: %v\n", err)
+		return
+	}
+
+	if isEmpty {
+		fmt.Println("Backup directory is empty, creating initial system hosts backup")
+		err = a.BackupRawSystemHosts()
+		if err != nil {
+			fmt.Printf("Warning: failed to create initial system hosts backup: %v\n", err)
+		} else {
+			fmt.Println("Initial system hosts backup created successfully")
+		}
+	}
 }
 
 // shutdown is called when the app is closing
@@ -153,6 +170,26 @@ func (a *App) ListDataBackups() ([]string, error) {
 // RestoreData 从备份文件恢复数据
 func (a *App) RestoreData(backupFileName string) error {
 	return a.hostApp.RestoreData(backupFileName)
+}
+
+// HasRawHostsBackup 检查是否存在原始hosts备份文件
+func (a *App) HasRawHostsBackup() (bool, error) {
+	return a.hostApp.HasRawHostsBackup()
+}
+
+// IsBackupDirEmpty 检查备份目录是否为空
+func (a *App) IsBackupDirEmpty() (bool, error) {
+	return a.hostApp.IsBackupDirEmpty()
+}
+
+// BackupRawSystemHosts 备份当前系统hosts文件
+func (a *App) BackupRawSystemHosts() error {
+	return a.hostApp.BackupRawSystemHosts()
+}
+
+// RestoreRawSystemHosts 从备份恢复系统hosts文件
+func (a *App) RestoreRawSystemHosts(backupFileName string) error {
+	return a.hostApp.RestoreRawSystemHosts(backupFileName)
 }
 
 // Greet returns a greeting for the given name

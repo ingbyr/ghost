@@ -42,11 +42,7 @@ func (a *App) shutdown(ctx context.Context) {
 		fmt.Printf("Warning: failed to backup config: %v\n", err)
 	}
 
-	// 创建系统hosts文件的备份
-	backupPath := a.hostApp.HostManager().CreateBackup()
-	if backupPath != "" {
-		fmt.Printf("Created hosts file backup on exit: %s\n", backupPath)
-	}
+	// 系统hosts文件备份逻辑已移除
 }
 
 // GetHostGroups 获取所有Host分组
@@ -136,11 +132,8 @@ func (a *App) BackupData() error {
 
 // CreateSystemHostsBackup 创建系统hosts文件备份
 func (a *App) CreateSystemHostsBackup() (string, error) {
-	backupPath := a.hostApp.HostManager().CreateBackup()
-	if backupPath == "" {
-		return "", fmt.Errorf("failed to create system hosts backup")
-	}
-	return backupPath, nil
+	// Function removed as per requirement - hosts.ghost_backup logic deleted
+	return "", nil
 }
 
 // BackupAppAndSystemHosts 同时备份应用数据文件和系统hosts文件

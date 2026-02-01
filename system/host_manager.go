@@ -17,8 +17,6 @@ const (
 	GhostSectionStart = "# >>> Ghost Host Entries"
 	// GhostSectionEnd Ghost标记段结束
 	GhostSectionEnd = "# <<< Ghost Host Entries"
-	// GhostBackupExt 备份文件扩展名
-	GhostBackupExt = ".ghost_backup"
 )
 
 // HostManager 系统hosts文件管理器
@@ -89,32 +87,8 @@ func (hm *HostManager) getAppDataDir() (string, error) {
 
 // CreateBackup 创建系统hosts文件备份
 func (hm *HostManager) CreateBackup() string {
-	// 获取应用数据目录用于备份
-	backupDir, err := hm.getAppDataDir()
-	if err != nil {
-		fmt.Printf("Warning: failed to get app data directory for backup: %v\n", err)
-		return ""
-	}
-
-	// 构建备份文件路径
-	backupFileName := filepath.Base(hm.SystemHostPath) + GhostBackupExt + "_" + time.Now().Format("20060102_150405")
-	backupPath := filepath.Join(backupDir, backupFileName)
-
-	// 读取原文件内容
-	content, err := os.ReadFile(hm.SystemHostPath)
-	if err != nil {
-		fmt.Printf("Warning: failed to read original hosts file for backup: %v\n", err)
-		return ""
-	}
-
-	// 写入备份文件
-	err = os.WriteFile(backupPath, content, 0644)
-	if err != nil {
-		fmt.Printf("Warning: failed to create backup: %v\n", err)
-		return ""
-	}
-
-	return backupPath
+	// Function removed as per requirement - hosts.ghost_backup logic deleted
+	return ""
 }
 
 // ApplyHostGroups 将指定的HostGroups应用到系统hosts文件
@@ -274,19 +248,6 @@ func (hm *HostManager) RestoreFromBackup(backupPath string) error {
 
 // ListBackups 列出所有可用的备份文件
 func (hm *HostManager) ListBackups() ([]string, error) {
-	// 获取应用数据目录中的备份
-	backupDir, err := hm.getAppDataDir()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get app data directory: %w", err)
-	}
-
-	// 构建匹配模式
-	pattern := filepath.Join(backupDir, filepath.Base(hm.SystemHostPath)+GhostBackupExt+"*")
-
-	matches, err := filepath.Glob(pattern)
-	if err != nil {
-		return nil, err
-	}
-
-	return matches, nil
+	// Function removed as per requirement - hosts.ghost_backup logic deleted
+	return []string{}, nil
 }

@@ -315,7 +315,7 @@ export default {
     async backupNow() {
       try {
         const result = await BackupAppAndSystemHosts();
-        this.showMessage(`Backup completed successfully: ${result}`, 'success');
+        this.showMessage(`App data backup completed successfully: ${result}`, 'success');
       } catch (error) {
         this.showMessage(`Failed to perform backup: ${error}`, 'error');
       }
@@ -337,7 +337,11 @@ export default {
 
         // 显示选择对话框
         const selectedIndex = prompt(
-          `Select a backup to restore (1-${backups.length}):\n\n${backupOptions}\n\nWarning: This will overwrite current data!`
+          `Select a backup to restore (1-${backups.length}):
+
+${backupOptions}
+
+Warning: This will overwrite current data!`
         );
 
         if (selectedIndex === null) {

@@ -454,19 +454,14 @@ func (app *HostApp) HostManager() *system.HostManager {
 
 // BackupAppAndSystemHosts 同时备份应用数据文件和系统hosts文件
 func (app *HostApp) BackupAppAndSystemHosts() (string, error) {
-	// 创建系统hosts文件备份
-	hostsBackupPath := app.hostManager.CreateBackup()
-	if hostsBackupPath == "" {
-		return "", fmt.Errorf("failed to create system hosts backup")
-	}
-
 	// 创建应用数据备份（即data.json）
 	err := app.configStorage.BackupData()
 	if err != nil {
-		return hostsBackupPath, fmt.Errorf("created hosts backup at %s, but failed to create data backup: %w", hostsBackupPath, err)
+		return "", fmt.Errorf("failed to create data backup: %w", err)
 	}
 
-	return fmt.Sprintf("System hosts backed up to: %s, App data backed up to: data backup created", hostsBackupPath), nil
+	result := "App data backed up successfully"
+	return result, nil
 }
 
 // ListDataBackups 列出所有数据备份文件

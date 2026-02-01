@@ -8,6 +8,10 @@ frontend/
 │   ├── App.vue                 # 主应用组件
 │   ├── main.js                 # 应用入口
 │   ├── style.css              # 全局样式
+│   ├── i18n.js               # 国际化配置
+│   └── locales/               # 语言包目录
+│       ├── zh-CN.json        # 中文语言包
+│       └── en-US.json        # 英文语言包
 │   └── components/            # 组件目录
 │       ├── Sidebar.vue        # 侧边栏
 │       ├── MainPanel.vue      # 主面板
@@ -15,7 +19,8 @@ frontend/
 │       ├── LocalHostEditor.vue  # 本地Host编辑器
 │       ├── SystemHostPreview.vue # 系统Host预览
 │       ├── ActionBar.vue      # 操作栏
-│       └── AddGroupModal.vue  # 添加群组模态框
+│       ├── AddGroupModal.vue  # 添加群组模态框
+│       └── LanguageSwitcher.vue # 语言切换组件
 ```
 
 ## 组件功能速查
@@ -72,6 +77,38 @@ frontend/
 - 选择群组类型（本地/远程）
 - 输入群组信息
 - 创建新群组
+
+### LanguageSwitcher.vue
+**用途**: 提供语言切换功能
+**主要功能**:
+- 在中英文之间切换界面语言
+- 持久化用户语言偏好设置
+
+## 国际化实现
+
+### 国际化架构
+- 使用 `vue-i18n` 库实现多语言支持
+- 支持中文(zh-CN)和英文(en-US)
+- 自动检测浏览器语言偏好
+- 用户可手动切换语言并持久化设置
+
+### 添加新翻译文本
+1. 在 `locales/zh-CN.json` 和 `locales/en-US.json` 中添加新的翻译键值对
+2. 按照组件分类组织翻译文本
+3. 在组件中使用 `{{ t('key.path') }}` 语法引用翻译
+
+### 国际化组件开发
+```javascript
+import { useI18n } from 'vue-i18n';
+
+export default {
+  setup() {
+    const { t } = useI18n();
+    return { t };
+  },
+  // ...
+}
+```
 
 ## 常见操作示例
 

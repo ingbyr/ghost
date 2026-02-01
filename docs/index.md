@@ -15,6 +15,8 @@
 
 - [前端快速参考](./frontend_quick_reference.md) - Vue.js 组件和前端开发参考
 - [前端组件关系图](./frontend_component_relationships.md) - 组件架构和依赖关系
+- [国际化功能说明](./i18n_support.md) - 多语言支持和国际化实现说明
+- [开发者国际化指南](./i18n_guide_for_developers.md) - 为开发者提供的国际化实现和维护指南
 
 ## 其他
 

@@ -6,24 +6,59 @@
     
     <div class="editor-content">
       <el-row :gutter="20" class="form-row">
-        <el-col :span="12">
+        <el-col :span="8">
           <div class="form-group">
             <label>{{ t('common.name') }} *</label>
             <input 
               v-model="localEditingGroup.name" 
               @input="markAsDirty"
+              @blur="autoSave"
               :readonly="group.id.startsWith('system-')"
             />
           </div>
         </el-col>
-        <el-col :span="12">
+        <el-col :span="8">
           <div class="form-group">
             <label>{{ t('common.description') }}</label>
             <input 
               v-model="localEditingGroup.description" 
               @input="markAsDirty"
+              @blur="autoSave"
               :readonly="group.id.startsWith('system-')"
             />
+          </div>
+        </el-col>
+        <el-col :span="8">
+          <div class="form-group">
+            <label>{{ t('components.remoteHostEditor.refreshInterval') }}</label>
+            <el-select 
+              v-model="localEditingGroup.refreshInterval" 
+              @change="autoSave"
+              :placeholder="t('components.remoteHostEditor.selectRefreshInterval')"
+              class="full-width"
+              :disabled="group.id.startsWith('system-')"
+            >
+              <el-option 
+                :label="t('components.remoteHostEditor.refreshDisabled')" 
+                :value="0" 
+              />
+              <el-option 
+                :label="t('components.remoteHostEditor.everyHour')" 
+                :value="3600" 
+              />
+              <el-option 
+                :label="t('components.remoteHostEditor.every4Hours')" 
+                :value="14400" 
+              />
+              <el-option 
+                :label="t('components.remoteHostEditor.every8Hours')" 
+                :value="28800" 
+              />
+              <el-option 
+                :label="t('components.remoteHostEditor.every24Hours')" 
+                :value="86400" 
+              />
+            </el-select>
           </div>
         </el-col>
       </el-row>
@@ -35,6 +70,7 @@
             <input 
               v-model="localEditingGroup.url" 
               @input="markAsDirty"
+              @blur="autoSave"
               :placeholder="t('components.remoteHostEditor.remoteContentPlaceholder')"
               :readonly="group.id.startsWith('system-')"
             />
@@ -73,21 +109,7 @@
       </div>
     </div>
     
-    <!-- 浮动保存按钮 -->
-    <div class="floating-save-btn" v-if="isDirty">
-      <button 
-        class="btn btn-primary" 
-        @click="saveGroup"
-      >
-        {{ t('components.remoteHostEditor.saveChanges') }}
-      </button>
-      <button 
-        class="btn btn-secondary" 
-        @click="cancelEdit"
-      >
-        {{ t('common.cancel') }}
-      </button>
-    </div>
+
   </div>
 </template>
 
@@ -160,6 +182,12 @@ export default {
     },
     markAsDirty() {
       this.$emit('mark-as-dirty');
+    },
+    async autoSave() {
+      // 检查是否有更改
+      if (this.isDirty) {
+        await this.saveGroup();
+      }
     },
     formatDate(dateString) {
       if (!dateString) return 'N/A'
@@ -293,22 +321,14 @@ export default {
   margin-top: 28px; /* Adjusted to align with input field */
 }
 
+.full-width {
+  width: 100%;
+}
+
 .disabled-input {
   background-color: #e9ecef;
   cursor: not-allowed;
 }
 
-.floating-save-btn {
-  position: absolute;
-  bottom: 20px;
-  right: 20px;
-  display: flex;
-  gap: 10px;
-  z-index: 1000;
-  background: white;
-  padding: 15px;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  border: 1px solid #dee2e6;
-}
+
 </style>

@@ -23,6 +23,9 @@ type HostApp struct {
 	mu            sync.RWMutex
 	autoRefresh   bool
 	stopChan      chan struct{}
+	// 用于管理单个远程组的定时刷新
+	remoteRefreshTimers map[string]*time.Ticker
+	remoteRefreshCancel map[string]chan struct{}
 }
 
 // NewHostApp 创建新的Host应用程序实例
@@ -35,10 +38,12 @@ func NewHostApp() (*HostApp, error) {
 	hostManager := system.NewHostManager()
 
 	app := &HostApp{
-		configStorage: configStorage,
-		hostManager:   hostManager,
-		autoRefresh:   false,
-		stopChan:      make(chan struct{}),
+		configStorage:       configStorage,
+		hostManager:         hostManager,
+		autoRefresh:         false,
+		stopChan:            make(chan struct{}),
+		remoteRefreshTimers: make(map[string]*time.Ticker),
+		remoteRefreshCancel: make(map[string]chan struct{}),
 	}
 
 	return app, nil
@@ -105,9 +110,11 @@ func (app *HostApp) UpdateHostGroup(group models.HostGroup) error {
 		return fmt.Errorf("failed to load host manager: %w", err)
 	}
 
+	var oldGroup *models.HostGroup
 	updated := false
 	for i, existingGroup := range manager.Groups {
 		if existingGroup.ID == group.ID {
+			oldGroup = &manager.Groups[i]
 			// 验证必要字段
 			if group.Name == "" {
 				return fmt.Errorf("group name cannot be empty")
@@ -138,6 +145,20 @@ func (app *HostApp) UpdateHostGroup(group models.HostGroup) error {
 		return fmt.Errorf("failed to save host manager: %w", err)
 	}
 
+	// 如果是远程组，根据刷新间隔设置启动或停止定时刷新
+	if group.IsRemote {
+		// 如果新的刷新间隔大于0，启动定时刷新
+		if group.RefreshInterval > 0 {
+			err := app.StartRemoteGroupRefreshTimer(group.ID)
+			if err != nil {
+				log.Printf("Error starting refresh timer for group %s: %v", group.ID, err)
+			}
+		} else if oldGroup != nil && oldGroup.RefreshInterval > 0 {
+			// 如果之前有定时刷新，但现在设置为0，则停止定时刷新
+			app.StopRemoteGroupRefreshTimer(group.ID)
+		}
+	}
+
 	return nil
 }
 
@@ -148,11 +169,13 @@ func (app *HostApp) DeleteHostGroup(id string) error {
 		return fmt.Errorf("failed to load host manager: %w", err)
 	}
 
+	var deletedGroup *models.HostGroup
 	updatedGroups := make([]models.HostGroup, 0, len(manager.Groups))
 	found := false
 
 	for _, group := range manager.Groups {
 		if group.ID == id {
+			deletedGroup = &group
 			found = true
 			continue
 		}
@@ -171,6 +194,11 @@ func (app *HostApp) DeleteHostGroup(id string) error {
 		return fmt.Errorf("failed to save host manager: %w", err)
 	}
 
+	// 如果删除的是远程组，停止其定时刷新
+	if deletedGroup != nil && deletedGroup.IsRemote {
+		app.StopRemoteGroupRefreshTimer(id)
+	}
+
 	return nil
 }
 
@@ -181,11 +209,13 @@ func (app *HostApp) ToggleHostGroup(id string, enabled bool) error {
 		return fmt.Errorf("failed to load host manager: %w", err)
 	}
 
+	var targetGroup *models.HostGroup
 	updated := false
 	for i, group := range manager.Groups {
 		if group.ID == id {
 			manager.Groups[i].Enabled = enabled
 			manager.Groups[i].UpdatedAt = time.Now().Format(time.RFC3339)
+			targetGroup = &manager.Groups[i]
 			updated = true
 			break
 		}
@@ -199,6 +229,20 @@ func (app *HostApp) ToggleHostGroup(id string, enabled bool) error {
 	err = app.configStorage.SaveHostManager(manager)
 	if err != nil {
 		return fmt.Errorf("failed to save host manager: %w", err)
+	}
+
+	// 如果是远程组且设置了刷新间隔，启用时启动定时器，禁用时停止定时器
+	if targetGroup != nil && targetGroup.IsRemote && targetGroup.RefreshInterval > 0 {
+		if enabled {
+			// 启用组时启动定时刷新
+			err := app.StartRemoteGroupRefreshTimer(id)
+			if err != nil {
+				log.Printf("Error starting refresh timer for group %s: %v", id, err)
+			}
+		} else {
+			// 禁用组时停止定时刷新
+			app.StopRemoteGroupRefreshTimer(id)
+		}
 	}
 
 	return nil
@@ -499,4 +543,105 @@ func (app *HostApp) RestoreRawSystemHosts(backupFileName string) error {
 
 	backupFilePath := filepath.Join(backupDir, backupFileName)
 	return app.hostManager.RestoreRawSystemHosts(backupFilePath)
+}
+
+// StartRemoteGroupRefreshTimer 启动指定远程组的定时刷新
+func (app *HostApp) StartRemoteGroupRefreshTimer(id string) error {
+	app.mu.Lock()
+	defer app.mu.Unlock()
+
+	// 先停止可能存在的定时器
+	app.stopRemoteGroupRefreshTimer(id)
+
+	// 获取组信息
+	group, err := app.GetHostGroup(id)
+	if err != nil {
+		return fmt.Errorf("failed to get host group: %w", err)
+	}
+
+	// 检查是否为远程组且设置了刷新间隔
+	if !group.IsRemote || group.RefreshInterval <= 0 {
+		return fmt.Errorf("group is not a remote group or refresh interval is not set")
+	}
+
+	// 创建取消通道
+	cancelChan := make(chan struct{})
+	app.remoteRefreshCancel[id] = cancelChan
+
+	// 创建并启动定时器
+	ticker := time.NewTicker(time.Duration(group.RefreshInterval) * time.Second)
+	app.remoteRefreshTimers[id] = ticker
+
+	log.Printf("Starting refresh timer for remote group %s with interval %ds", id, group.RefreshInterval)
+
+	// 启动goroutine处理定时刷新
+	go func() {
+		for {
+			select {
+			case <-ticker.C:
+				log.Printf("Refreshing remote group %s due to timer", id)
+				err := app.RefreshRemoteGroup(id)
+				if err != nil {
+					log.Printf("Error refreshing remote group %s: %v", id, err)
+				}
+			case <-cancelChan:
+				log.Printf("Stopping refresh timer for remote group %s", id)
+				return
+			}
+		}
+	}()
+
+	return nil
+}
+
+// StopRemoteGroupRefreshTimer 停止指定远程组的定时刷新
+func (app *HostApp) StopRemoteGroupRefreshTimer(id string) {
+	app.mu.Lock()
+	defer app.mu.Unlock()
+
+	app.stopRemoteGroupRefreshTimer(id)
+}
+
+// stopRemoteGroupRefreshTimer 内部方法，停止指定远程组的定时刷新
+func (app *HostApp) stopRemoteGroupRefreshTimer(id string) {
+	// 停止ticker
+	if ticker, exists := app.remoteRefreshTimers[id]; exists {
+		ticker.Stop()
+		delete(app.remoteRefreshTimers, id)
+	}
+
+	// 关闭取消通道
+	if cancelChan, exists := app.remoteRefreshCancel[id]; exists {
+		close(cancelChan)
+		delete(app.remoteRefreshCancel, id)
+	}
+}
+
+// StartAllRemoteGroupRefreshTimers 启动所有配置了定时刷新的远程组的定时器
+func (app *HostApp) StartAllRemoteGroupRefreshTimers() error {
+	groups, err := app.GetHostGroups()
+	if err != nil {
+		return fmt.Errorf("failed to get host groups: %w", err)
+	}
+
+	for _, group := range groups {
+		if group.IsRemote && group.RefreshInterval > 0 {
+			err := app.StartRemoteGroupRefreshTimer(group.ID)
+			if err != nil {
+				log.Printf("Error starting refresh timer for group %s: %v", group.ID, err)
+			}
+		}
+	}
+
+	return nil
+}
+
+// StopAllRemoteGroupRefreshTimers 停止所有远程组的定时刷新
+func (app *HostApp) StopAllRemoteGroupRefreshTimers() {
+	app.mu.Lock()
+	defer app.mu.Unlock()
+
+	for id := range app.remoteRefreshTimers {
+		app.stopRemoteGroupRefreshTimer(id)
+	}
 }

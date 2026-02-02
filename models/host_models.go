@@ -2,16 +2,17 @@ package models
 
 // HostGroup 表示一个Host分组
 type HostGroup struct {
-	ID          string `json:"id"`
-	Name        string `json:"name"`
-	Description string `json:"description,omitempty"`
-	Content     string `json:"content"`       // Host内容
-	Enabled     bool   `json:"enabled"`       // 是否启用
-	IsRemote    bool   `json:"isRemote"`      // 是否为远程Host
-	URL         string `json:"url,omitempty"` // 远程URL（仅当IsRemote=true时有效）
-	LastUpdated string `json:"lastUpdated"`   // 最后更新时间
-	CreatedAt   string `json:"createdAt"`
-	UpdatedAt   string `json:"updatedAt"`
+	ID              string `json:"id"`
+	Name            string `json:"name"`
+	Description     string `json:"description,omitempty"`
+	Content         string `json:"content"`         // Host内容
+	Enabled         bool   `json:"enabled"`         // 是否启用
+	IsRemote        bool   `json:"isRemote"`        // 是否为远程Host
+	URL             string `json:"url,omitempty"`   // 远程URL（仅当IsRemote=true时有效）
+	RefreshInterval int64  `json:"refreshInterval"` // 刷新间隔（秒），0表示不启用定时刷新
+	LastUpdated     string `json:"lastUpdated"`     // 最后更新时间
+	CreatedAt       string `json:"createdAt"`
+	UpdatedAt       string `json:"updatedAt"`
 }
 
 // RemoteConfig 远程Host配置

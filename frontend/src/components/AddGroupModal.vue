@@ -44,6 +44,37 @@
           />
         </div>
         
+        <!-- 如果是远程Host，显示定时刷新配置 -->
+        <div v-if="localNewGroup.isRemote" class="form-group">
+          <label>{{ t('components.remoteHostEditor.refreshInterval') }}</label>
+          <el-select 
+            v-model="localNewGroup.refreshInterval" 
+            :placeholder="t('components.remoteHostEditor.selectRefreshInterval')"
+            class="full-width"
+          >
+            <el-option 
+              :label="t('components.remoteHostEditor.refreshDisabled')" 
+              :value="0" 
+            />
+            <el-option 
+              :label="t('components.remoteHostEditor.everyHour')" 
+              :value="3600" 
+            />
+            <el-option 
+              :label="t('components.remoteHostEditor.every4Hours')" 
+              :value="14400" 
+            />
+            <el-option 
+              :label="t('components.remoteHostEditor.every8Hours')" 
+              :value="28800" 
+            />
+            <el-option 
+              :label="t('components.remoteHostEditor.every24Hours')" 
+              :value="86400" 
+            />
+          </el-select>
+        </div>
+        
         <div class="form-row">
           <button class="btn btn-secondary" @click="resetHostTypeSelection">{{ t('common.back') }}</button>
           <button class="btn btn-primary" @click="addGroup">{{ t('components.addGroupModal.addGroup') }}</button>
@@ -80,7 +111,8 @@ export default {
         content: '',
         enabled: false,
         isRemote: false,
-        url: ''
+        url: '',
+        refreshInterval: 0
       })
     }
   },

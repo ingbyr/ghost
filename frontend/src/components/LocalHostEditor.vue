@@ -12,6 +12,7 @@
             <input 
               v-model="localEditingGroup.name" 
               @input="markAsDirty"
+              @blur="handleNameBlur"
               :disabled="isReadOnly"
             />
           </div>
@@ -22,6 +23,7 @@
             <input 
               v-model="localEditingGroup.description" 
               @input="markAsDirty"
+              @blur="handleDescriptionBlur"
               :disabled="isReadOnly"
             />
           </div>
@@ -124,6 +126,18 @@ export default {
     },
     handleContentBlur(event) {
       // 当内容编辑区域失去焦点时自动保存，但只在不是只读模式时
+      if (!this.isReadOnly && this.isDirty) {
+        this.saveGroup();
+      }
+    },
+    handleNameBlur() {
+      // 当名称输入框失去焦点时自动保存，但只在不是只读模式时
+      if (!this.isReadOnly && this.isDirty) {
+        this.saveGroup();
+      }
+    },
+    handleDescriptionBlur() {
+      // 当描述输入框失去焦点时自动保存，但只在不是只读模式时
       if (!this.isReadOnly && this.isDirty) {
         this.saveGroup();
       }

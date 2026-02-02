@@ -71,7 +71,14 @@
       "remoteContentPlaceholder": "Remote content will be displayed here after refresh...",
       "getting": "Getting...",
       "fetchHostContent": "Fetch Host Content",
-      "saveChanges": "Save Changes"
+      "saveChanges": "Save Changes",
+      "refreshInterval": "Refresh Interval",
+      "selectRefreshInterval": "Select refresh interval",
+      "refreshDisabled": "Disabled",
+      "everyHour": "Every 1 hour",
+      "every4Hours": "Every 4 hours",
+      "every8Hours": "Every 8 hours",
+      "every24Hours": "Every 24 hours"
     },
     "localhostEditor": {
       "readOnlyHint": " (Cannot modify when enabled)",

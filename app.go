@@ -192,6 +192,26 @@ func (a *App) RestoreRawSystemHosts(backupFileName string) error {
 	return a.hostApp.RestoreRawSystemHosts(backupFileName)
 }
 
+// StartRemoteGroupRefreshTimer 启动指定远程组的定时刷新
+func (a *App) StartRemoteGroupRefreshTimer(id string) error {
+	return a.hostApp.StartRemoteGroupRefreshTimer(id)
+}
+
+// StopRemoteGroupRefreshTimer 停止指定远程组的定时刷新
+func (a *App) StopRemoteGroupRefreshTimer(id string) {
+	a.hostApp.StopRemoteGroupRefreshTimer(id)
+}
+
+// StartAllRemoteGroupRefreshTimers 启动所有配置了定时刷新的远程组的定时器
+func (a *App) StartAllRemoteGroupRefreshTimers() error {
+	return a.hostApp.StartAllRemoteGroupRefreshTimers()
+}
+
+// StopAllRemoteGroupRefreshTimers 停止所有远程组的定时刷新
+func (a *App) StopAllRemoteGroupRefreshTimers() {
+	a.hostApp.StopAllRemoteGroupRefreshTimers()
+}
+
 // Greet returns a greeting for the given name
 func (a *App) Greet(name string) string {
 	return fmt.Sprintf("Hello %s, It's show time!", name)

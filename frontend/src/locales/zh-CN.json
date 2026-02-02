@@ -71,7 +71,14 @@
       "remoteContentPlaceholder": "刷新后将在此处显示远程内容...",
       "getting": "获取中...",
       "fetchHostContent": "获取host内容",
-      "saveChanges": "保存更改"
+      "saveChanges": "保存更改",
+      "refreshInterval": "刷新间隔",
+      "selectRefreshInterval": "选择刷新间隔",
+      "refreshDisabled": "已禁用",
+      "everyHour": "每1小时",
+      "every4Hours": "每4小时",
+      "every8Hours": "每8小时",
+      "every24Hours": "每24小时"
     },
     "localhostEditor": {
       "readOnlyHint": " (启用后无法修改)",

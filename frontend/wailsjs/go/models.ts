@@ -34,6 +34,7 @@ export namespace models {
 	    enabled: boolean;
 	    isRemote: boolean;
 	    url?: string;
+	    refreshInterval: number;
 	    lastUpdated: string;
 	    createdAt: string;
 	    updatedAt: string;
@@ -51,6 +52,7 @@ export namespace models {
 	        this.enabled = source["enabled"];
 	        this.isRemote = source["isRemote"];
 	        this.url = source["url"];
+	        this.refreshInterval = source["refreshInterval"];
 	        this.lastUpdated = source["lastUpdated"];
 	        this.createdAt = source["createdAt"];
 	        this.updatedAt = source["updatedAt"];

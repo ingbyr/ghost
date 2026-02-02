@@ -46,6 +46,14 @@ export function RestoreData(arg1:string):Promise<void>;
 
 export function RestoreRawSystemHosts(arg1:string):Promise<void>;
 
+export function StartAllRemoteGroupRefreshTimers():Promise<void>;
+
+export function StartRemoteGroupRefreshTimer(arg1:string):Promise<void>;
+
+export function StopAllRemoteGroupRefreshTimers():Promise<void>;
+
+export function StopRemoteGroupRefreshTimer(arg1:string):Promise<void>;
+
 export function ToggleHostGroup(arg1:string,arg2:boolean):Promise<void>;
 
 export function UpdateConfig(arg1:models.AppConfig):Promise<void>;

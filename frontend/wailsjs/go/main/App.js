@@ -90,6 +90,22 @@ export function RestoreRawSystemHosts(arg1) {
   return window['go']['main']['App']['RestoreRawSystemHosts'](arg1);
 }
 
+export function StartAllRemoteGroupRefreshTimers() {
+  return window['go']['main']['App']['StartAllRemoteGroupRefreshTimers']();
+}
+
+export function StartRemoteGroupRefreshTimer(arg1) {
+  return window['go']['main']['App']['StartRemoteGroupRefreshTimer'](arg1);
+}
+
+export function StopAllRemoteGroupRefreshTimers() {
+  return window['go']['main']['App']['StopAllRemoteGroupRefreshTimers']();
+}
+
+export function StopRemoteGroupRefreshTimer(arg1) {
+  return window['go']['main']['App']['StopRemoteGroupRefreshTimer'](arg1);
+}
+
 export function ToggleHostGroup(arg1, arg2) {
   return window['go']['main']['App']['ToggleHostGroup'](arg1, arg2);
 }

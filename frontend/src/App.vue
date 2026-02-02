@@ -759,6 +759,14 @@ export default {
   font-size: 16px;
 }
 
+.app-title {
+  color: #2c3e50;
+  font-size: 18px;
+  font-weight: bold;
+  margin: 0;
+  padding: 0;
+}
+
 .app-container {
   display: flex;
   flex: 1;

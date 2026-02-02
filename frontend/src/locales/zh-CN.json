@@ -75,7 +75,7 @@
     },
     "localhostEditor": {
       "readOnlyHint": " (启用后无法修改)",
-      "enterHostEntries": "在此处输入主机条目..."
+      "enterHostEntries": "在此处输入Host条目..."
     },
     "mainPanel": {
       "selectHostGroupTitle": "选择一个Host分组进行编辑",

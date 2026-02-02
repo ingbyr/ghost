@@ -11,6 +11,8 @@
 
 - [权限管理说明](./permissions.md) - 详细解释各平台的权限处理机制
 - [应用备份机制](./backup_mechanism.md) - 详细解释备份机制和实现
+- [定时刷新功能](./timer_refresh_feature.md) - 详细解释定时刷新功能和实现
+- [自动保存功能](./auto_save_feature.md) - 详细解释自动保存功能和实现
 
 ## 前端开发
 

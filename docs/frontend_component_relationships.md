@@ -95,7 +95,8 @@ RemoteHostEditor.vue
 LocalHostEditor.vue
 ├── save-group → MainPanel.vue
 ├── cancel-edit → MainPanel.vue
-└── mark-as-dirty → MainPanel.vue
+├── mark-as-dirty → MainPanel.vue
+└── blur events(autoSave) → save-group
 
 SystemHostPreview.vue
 └── refresh-system-host → MainPanel.vue
